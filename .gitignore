@@ -1,3 +1,7 @@
+# Windows / Visual Studio / Cmake things
+build/
+.vs/
+
 # Prerequisites
 *.d
 
