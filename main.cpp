@@ -12,19 +12,26 @@ bool init();
 bool loadMedia();
 
 //frees media and shuts down sdl
-void close();
+void close();	
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-SDL_Window* gWindow = NULL;
-SDL_Surface* gScreenSurface = NULL;
-SDL_Surface* gHelloWorld = NULL;
+SDL_Window* gWindow = NULL;					//game window
+SDL_Surface* gScreenSurface = NULL;			//surface in game window
+SDL_Surface* gHelloWorld = NULL;			//image to load
 
 
 int main(int argc, char *argv[]) {
 
+	init();
+
+	loadMedia();
+
+	SDL_BlitSurface(gHelloWorld, NULL, gScreenSurface, NULL);
+	SDL_UpdateWindowSurface(gWindow);
+	SDL_Delay(5000);
 	return 0;
 }
 
@@ -52,4 +59,30 @@ bool init() {
 	}
 
 	return success;
+}
+
+bool loadMedia() {
+	bool success = true;
+
+	gHelloWorld = SDL_LoadBMP("hello.bmp");
+	if (gHelloWorld == NULL) {
+		printf("Unable to load image %s! SDL Error: %s\n", "hello.bmp", SDL_GetError());
+		success = false;
+	}
+
+	return success;
+}
+
+void close()
+{
+	//Deallocate surface
+	SDL_FreeSurface(gHelloWorld);
+	gHelloWorld = NULL;
+
+	//Destroy window
+	SDL_DestroyWindow(gWindow);
+	gWindow = NULL;
+
+	//Quit SDL subsystems
+	SDL_Quit();
 }
