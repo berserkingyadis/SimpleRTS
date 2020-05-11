@@ -4,9 +4,9 @@
 #include "SDL.h"
 #include "SDL_image.h"
 
+#include "LTexture.h"
 
-const int BUTTON_WIDTH = 100;
-const int BUTTON_HEIGHT = 50;
+
 
 
 enum LButtonSprite
@@ -21,14 +21,18 @@ enum LButtonSprite
 class LButton
 {
 public:
-	LButton(SDL_Renderer* renderer = NULL);
+	LButton(SDL_Renderer* renderer = NULL, SDL_Rect* clip = NULL, LTexture* texture = NULL);
 	void setPosition(int x, int y);
 	void handleEvent(SDL_Event* e);
 
 	void render();
 private:
 	SDL_Renderer* mRenderer;
+	SDL_Rect* mClip;
+	LTexture* mTexture;
 	SDL_Point mPosition;
+	int mWidth;
+	int mHeight;
 	LButtonSprite mCurrentSprite;
 };
 

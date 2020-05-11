@@ -1,9 +1,16 @@
 #include "LButton.h"
 
-LButton::LButton(SDL_Renderer* renderer) {
+LButton::LButton(SDL_Renderer* renderer, SDL_Rect* clip, LTexture* texture) {
+	printf("button constructor!");
 	mRenderer = renderer;
+	mTexture = texture;
+	mClip = clip;
 	mPosition.x = 0;
 	mPosition.y = 0;
+	if (clip != NULL) {
+		mWidth = clip->w;
+		mHeight = clip->h;
+	}
 
 	mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
 }
@@ -31,7 +38,7 @@ void LButton::handleEvent(SDL_Event* e) {
 			inside = false;
 		}
 		//Mouse is right of the button
-		else if (x > mPosition.x + BUTTON_WIDTH)
+		else if (x > mPosition.x + mWidth)
 		{
 			inside = false;
 		}
@@ -41,7 +48,7 @@ void LButton::handleEvent(SDL_Event* e) {
 			inside = false;
 		}
 		//Mouse below the button
-		else if (y > mPosition.y + BUTTON_HEIGHT)
+		else if (y > mPosition.y + mHeight)
 		{
 			inside = false;
 		}
@@ -71,5 +78,5 @@ void LButton::handleEvent(SDL_Event* e) {
 }
 
 void LButton::render() {
-
+	mTexture->render(mPosition.x, mPosition.y, &mClip[mCurrentSprite]);
 }

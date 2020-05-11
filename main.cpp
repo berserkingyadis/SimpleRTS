@@ -2,11 +2,13 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
 
 #include <stdio.h>
 #include <string>
 #include <cmath>
 
+#define M_PI 3.141592653589793
 #include "LTexture.h"
 #include "LButton.h"
 
@@ -16,6 +18,9 @@ const int SCREEN_HEIGHT = 480;
 
 const int TEXTURES_SIZE = 1;
 
+const int BUTTON_WIDTH = 300;
+const int BUTTON_HEIGHT = 200;
+
 //Starts up SDL and creates window
 bool init();
 
@@ -24,9 +29,6 @@ bool loadMedia();
 
 //Frees media and shuts down SDL
 void close();
-
-//Loads individual image
-SDL_Texture* loadTexture(std::string path);
 
 
 LTexture* gTextures[TEXTURES_SIZE];
@@ -44,15 +46,26 @@ SDL_Window* gWindow = NULL;
 
 SDL_Renderer* gRenderer = NULL;
 
+// Text globals 
 TTF_Font* gFont = NULL;
-
 LTexture* gText = NULL;
 
+
+// Button globals
 const int TOTAL_BUTTONS = 4;
 SDL_Rect gButtonClips[TOTAL_BUTTONS];
 
-LButton gButtons[TOTAL_BUTTONS];
+LButton* gButtons[TOTAL_BUTTONS];
+LTexture* gTexButtons;
 
+// gamepad globals
+const int JOYSTICK_DEAD_ZONE = 5000;
+SDL_Joystick* gGameController = NULL;
+SDL_Haptic* gControllerHaptic = NULL;
+
+
+// music globals
+Mix_Music *gMusic = NULL;
 
 
 bool init()
@@ -61,13 +74,46 @@ bool init()
 	bool success = true;
 
 	//Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_AUDIO) < 0)
 	{
 		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
 		success = false;
 	}
 	else
-	{
+	{	
+		//init sdl_mixer
+		if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+			printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+			success = false;
+		}
+		//Check for joysticks
+		if (SDL_NumJoysticks() < 1) {
+			printf("Warning: No joysticks have been found by SDL!\n");
+		}
+		else {
+			//Load Joystick
+			gGameController = SDL_JoystickOpen(0);
+			if (gGameController == NULL)
+			{
+				printf("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+			}
+			else {
+				//Get controller haptic device
+				gControllerHaptic = SDL_HapticOpenFromJoystick(gGameController);
+				if (gControllerHaptic == NULL)
+				{
+					printf("Warning: Controller does not support haptics! SDL Error: %s\n", SDL_GetError());
+				}
+				else
+				{
+					//Get initialize rumble
+					if (SDL_HapticRumbleInit(gControllerHaptic) < 0)
+					{
+						printf("Warning: Unable to initialize rumble! SDL Error: %s\n", SDL_GetError());
+					}
+				}
+			}
+		}
 		//Create window
 		gWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 		if (gWindow == NULL)
@@ -120,8 +166,27 @@ bool init()
 					gSprites = new LTexture(gRenderer);
 					gWalkingAnim = new LTexture(gRenderer);
 					gText = new LTexture(gRenderer, gFont);
-					int size = sizeof(*gText);
-					printf("texture size is " + size);
+					gTexButtons = new LTexture(gRenderer);
+
+					//load button texture early
+					if (!gTexButtons->loadFromFile("button/buttons.png")) {
+						printf("Failed to load buttons :(");
+						return false;
+					}
+					//init button clips
+					for (int i = 0; i < TOTAL_BUTTONS; i++) {
+						gButtonClips[i].x = 0;
+						gButtonClips[i].y = i * 200;
+						gButtonClips[i].w = BUTTON_WIDTH;
+						gButtonClips[i].h = BUTTON_HEIGHT;
+
+						gButtons[i] = new LButton(gRenderer, gButtonClips, gTexButtons);
+					}
+					gButtons[0]->setPosition(0, 0);
+					gButtons[1]->setPosition(SCREEN_WIDTH - BUTTON_WIDTH, 0);
+					gButtons[2]->setPosition(0, SCREEN_HEIGHT-BUTTON_HEIGHT);
+					gButtons[3]->setPosition(SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT);
+
 				}
 
 			}
@@ -217,6 +282,12 @@ void close()
 		gTextures[i] = NULL;
 	}
 
+	for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
+		
+		delete gButtons[i];
+		gButtons[i] = NULL;
+	}
+
 	delete gTexMila;
 	gTexMila = NULL;
 
@@ -229,8 +300,16 @@ void close()
 	delete gText;
 	gText = NULL;
 
+	delete gTexButtons;
+	gTexButtons = NULL;
+
 	TTF_CloseFont(gFont);
 	gFont = NULL;
+
+	SDL_HapticClose(gControllerHaptic);
+	SDL_JoystickClose(gGameController);
+	gGameController = NULL;
+	gControllerHaptic = NULL;
 
 	SDL_DestroyRenderer(gRenderer);
 	gRenderer = NULL;
@@ -289,6 +368,10 @@ int main(int argc, char* args[])
 			//flip type
 			SDL_RendererFlip fliptype = SDL_FLIP_NONE;
 
+			//joystick 
+			int xDir = 0;
+			int yDir = 0;
+
 			//While application is running
 			while (!quit)
 			{	
@@ -309,9 +392,6 @@ int main(int argc, char* args[])
 						//Select surfaces based on key press
 						switch (e.key.keysym.sym)
 						{
-						case SDLK_ESCAPE:
-							quit = true;
-							break;
 						case SDLK_UP:
 							milaY = (milaY - 5) % (SCREEN_HEIGHT - gTexMila->getHeight());
 							break;
@@ -361,12 +441,74 @@ int main(int argc, char* args[])
 						}
 
 						gTexMila->setColor(r, g, b);
+					} 
+					else if (e.type == SDL_JOYAXISMOTION) {
+						//X axis motion
+						if (e.jaxis.axis == 0)
+						{
+							//Left of dead zone
+							if (e.jaxis.value < -JOYSTICK_DEAD_ZONE)
+							{
+								xDir = -1;
+							}
+							//Right of dead zone
+							else if (e.jaxis.value > JOYSTICK_DEAD_ZONE)
+							{
+								xDir = 1;
+							}
+							else
+							{
+								xDir = 0;
+							}
+						}
+						//Y axis motion
+						else if (e.jaxis.axis == 1)
+						{
+							//Below of dead zone
+							if (e.jaxis.value < -JOYSTICK_DEAD_ZONE)
+							{
+								yDir = -1;
+							}
+							//Above of dead zone
+							else if (e.jaxis.value > JOYSTICK_DEAD_ZONE)
+							{
+								yDir = 1;
+							}
+							else
+							{
+								yDir = 0;
+							}
+						}
+					}
+					//Handle button events
+					for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
+						gButtons[i]->handleEvent(&e);
 					}
 				}
 				
+				//calculate joystick angle
+				double joystickAngle = atan2((double)yDir, (double)xDir) * (180.0 / M_PI);
+
+				//Correct angle
+				if (xDir == 0 && yDir == 0)
+				{
+					joystickAngle = 0;
+				}
+				//check ESC key state to exit
+				const uint8_t* currentKeyStates = SDL_GetKeyboardState(NULL);
+				if (currentKeyStates[SDL_SCANCODE_ESCAPE]) {
+					quit = true;
+				}
+				if (currentKeyStates[SDL_SCANCODE_B]) {
+					if (SDL_HapticRumblePlay(gControllerHaptic, 1, 20000) != 0)
+					{
+						printf("Warning: Unable to play rumble! %s\n", SDL_GetError());
+					}
+				}
+
 				gTextures[0]->render();
 				gTexMila->setAlpha(a);
-				gTexMila->render(milaX,milaY,NULL,degrees, NULL, fliptype);
+				gTexMila->render(milaX,milaY,NULL, joystickAngle, NULL, fliptype);
 
 				gSprites->render(SCREEN_WIDTH - gDrawingSpriteClips[0].w, SCREEN_HEIGHT - gDrawingSpriteClips[0].h, &gDrawingSpriteClips[0]);
 
@@ -374,6 +516,14 @@ int main(int argc, char* args[])
 				gWalkingAnim->render(SCREEN_WIDTH - currentClip->w, 0, currentClip);
 
 				gText->render(200, 200);
+
+
+				//draw buttons events
+				//for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
+				
+				//only draw bottom right buttonfor now
+				gButtons[3]->render();
+
 				SDL_RenderPresent(gRenderer);
 
 				SDL_Delay(10);
