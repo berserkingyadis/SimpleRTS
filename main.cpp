@@ -3,9 +3,11 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
+#include <SDL_thread.h>
 
 #include <stdio.h>
 #include <string>
+#include <sstream>
 #include <cmath>
 
 #define M_PI 3.141592653589793
@@ -49,6 +51,9 @@ SDL_Renderer* gRenderer = NULL;
 // Text globals 
 TTF_Font* gFont = NULL;
 LTexture* gText = NULL;
+
+// time globals
+LTexture* gTime = NULL;
 
 
 // Button globals
@@ -140,7 +145,7 @@ bool init()
 					success = false;
 				}
 
-				gFont = TTF_OpenFont("font/lazy.ttf", 50);
+				gFont = TTF_OpenFont("font/lazy.ttf", 32);
 				if (gFont == NULL)
 				{
 					printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError());
@@ -166,12 +171,13 @@ bool init()
 					gSprites = new LTexture(gRenderer);
 					gWalkingAnim = new LTexture(gRenderer);
 					gText = new LTexture(gRenderer, gFont);
+					gTime = new LTexture(gRenderer, gFont);
 					gTexButtons = new LTexture(gRenderer);
 
 					//load button texture early
 					if (!gTexButtons->loadFromFile("button/buttons.png")) {
 						printf("Failed to load buttons :(");
-						return false;
+						success = false;
 					}
 					//init button clips
 					for (int i = 0; i < TOTAL_BUTTONS; i++) {
@@ -262,12 +268,18 @@ bool loadMedia()
 	gSpriteClips[3].h = 205;
 
 	SDL_Color textColor = { 0,0,0 };
-	if (!gText->loadFromRenderedText("MILA IS CUTE ! :3", textColor))
+	if (!gText->loadFromRenderedText("Press Enter to Reset start time :)", textColor))
 	{
 		printf("Failed to render text texture!\n");
 		return false;
 	}
 	
+	gMusic = Mix_LoadMUS("sound/beat.wav");
+	if (gMusic == NULL)
+	{
+		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
+		return false;
+	}
 	return true;
 }
 
@@ -300,6 +312,9 @@ void close()
 	delete gText;
 	gText = NULL;
 
+	delete gTime;
+	gTime = NULL;
+
 	delete gTexButtons;
 	gTexButtons = NULL;
 
@@ -317,7 +332,11 @@ void close()
 	SDL_DestroyWindow(gWindow);
 	gWindow = NULL;
 
+	Mix_FreeMusic(gMusic);
+	gMusic = NULL;
+
 	//Quit SDL subsystems
+	Mix_Quit();
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
@@ -372,9 +391,18 @@ int main(int argc, char* args[])
 			int xDir = 0;
 			int yDir = 0;
 
+			//time
+			uint32_t startTime = 0;
+			std::stringstream timeText;
+			SDL_Color textColor = { 0, 0, 0, 255 };
+
 			//While application is running
 			while (!quit)
 			{	
+				timeText.str("");
+				timeText << "timer: " << SDL_GetTicks() - startTime;
+				//Render time text
+				gTime->loadFromRenderedText(timeText.str().c_str(), textColor);
 				SDL_RenderClear(gRenderer);
 				//Handle events on queue
 				while (SDL_PollEvent(&e) != 0)
@@ -392,6 +420,9 @@ int main(int argc, char* args[])
 						//Select surfaces based on key press
 						switch (e.key.keysym.sym)
 						{
+						case SDLK_RETURN:
+							startTime = SDL_GetTicks();
+							break;
 						case SDLK_UP:
 							milaY = (milaY - 5) % (SCREEN_HEIGHT - gTexMila->getHeight());
 							break;
@@ -505,10 +536,27 @@ int main(int argc, char* args[])
 						printf("Warning: Unable to play rumble! %s\n", SDL_GetError());
 					}
 				}
+				//use C to start/pause the music
+				if (currentKeyStates[SDL_SCANCODE_C]) {
+					if (Mix_PlayingMusic() == 0) {
+						Mix_PlayMusic(gMusic, -1); 
+					}
+					else {
+						if (Mix_PausedMusic() == 1) {
+							Mix_ResumeMusic();
+						}
+						else {
+							Mix_PauseMusic();
+						}
+					}
+				}
+				if (currentKeyStates[SDL_SCANCODE_V]) {
+					Mix_HaltMusic();
+				}
 
 				gTextures[0]->render();
 				gTexMila->setAlpha(a);
-				gTexMila->render(milaX,milaY,NULL, joystickAngle, NULL, fliptype);
+				gTexMila->render(milaX,milaY,NULL, degrees, NULL, fliptype);
 
 				gSprites->render(SCREEN_WIDTH - gDrawingSpriteClips[0].w, SCREEN_HEIGHT - gDrawingSpriteClips[0].h, &gDrawingSpriteClips[0]);
 
@@ -516,7 +564,7 @@ int main(int argc, char* args[])
 				gWalkingAnim->render(SCREEN_WIDTH - currentClip->w, 0, currentClip);
 
 				gText->render(200, 200);
-
+				gTime->render(200, 250);
 
 				//draw buttons events
 				//for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
