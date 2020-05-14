@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.5)
 project(SimpleRTS CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14) 
 
 set(SOURCE_FILES 
-	src/main.cpp 
-	src/LTexture.cpp 
-	src/LButton.cpp
-	src/LTimer.cpp)
-
+	src/main.cpp
+	src/LTimer.cpp
+	src/LTexture.cpp
+	src/LButton.cpp)
+	
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(SDL2 REQUIRED)

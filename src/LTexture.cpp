@@ -20,27 +20,28 @@ bool LTexture::loadFromFile(std::string path) {
 	if (loadedSurface == NULL)
 	{
 		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+		return false;
 	}
-	else
-	{
-		//color key image (wtf is this..)
-		SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, 0x00, 0xFF, 0xFF));
 
-		//create texture
-		newTexture = SDL_CreateTextureFromSurface(mRenderer, loadedSurface);
-		if (newTexture == NULL)
-		{
-			printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
-		}
-		else
-		{
-			mWidth = loadedSurface->w;
-			mHeight = loadedSurface->h;
-		}
-		SDL_FreeSurface(loadedSurface);
+	//color key image (wtf is this..)
+	SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, 0x00, 0xFF, 0xFF));
+	mWidth = loadedSurface->w;
+	mHeight = loadedSurface->h;
+
+	//create texture
+	newTexture = SDL_CreateTextureFromSurface(mRenderer, loadedSurface);
+
+	SDL_FreeSurface(loadedSurface);
+	loadedSurface = NULL;
+
+	if (newTexture == NULL)
+	{
+		printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
+		return false;
 	}
+
 	mTexture = newTexture;
-	return mTexture != NULL;
+	return true;
 }
 
 bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor)
@@ -67,7 +68,7 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
 			mWidth = textSurface->w;
 			mHeight = textSurface->h;
 		}
-		SDL_FreeSurface(textSurface);
+		//SDL_FreeSurface(textSurface);
 	}
 	return mTexture != NULL;
 }
