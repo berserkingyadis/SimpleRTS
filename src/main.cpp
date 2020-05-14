@@ -145,7 +145,7 @@ bool init()
 					success = false;
 				}
 
-				gFont = TTF_OpenFont("font/lazy.ttf", 32);
+				gFont = TTF_OpenFont("data/font/lazy.ttf", 32);
 				if (gFont == NULL)
 				{
 					printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError());
@@ -175,7 +175,7 @@ bool init()
 					gTexButtons = new LTexture(gRenderer);
 
 					//load button texture early
-					if (!gTexButtons->loadFromFile("button/buttons.png")) {
+					if (!gTexButtons->loadFromFile("data/button/buttons.png")) {
 						printf("Failed to load buttons :(");
 						success = false;
 					}
@@ -203,22 +203,22 @@ bool init()
 }
 bool loadMedia()
 {
-	if (!gTextures[0]->loadFromFile("pics/back.png")) {
+	if (!gTextures[0]->loadFromFile("data/pics/back.png")) {
 		printf("Failed to load image 0.png");
 		return false;
 	}
-	if (!gTexMila->loadFromFile("pics/mila.png")) {
+	if (!gTexMila->loadFromFile("data/pics/mila.png")) {
 		printf("Failed to load mila :(");
 		return false;
 	}
 	else {
 		gTexMila->setBlendMode(SDL_BLENDMODE_BLEND);
 	}
-	if (!gSprites->loadFromFile("pics/sprites.png")) {
+	if (!gSprites->loadFromFile("data/pics/sprites.png")) {
 		printf("Failed to load sprites :(");
 		return false;
 	}
-	if (!gWalkingAnim->loadFromFile("pics/walk.png")) {
+	if (!gWalkingAnim->loadFromFile("data/pics/walk.png")) {
 		printf("Failed to load walking animation :(");
 		return false;
 	}
@@ -274,7 +274,7 @@ bool loadMedia()
 		return false;
 	}
 	
-	gMusic = Mix_LoadMUS("sound/beat.wav");
+	gMusic = Mix_LoadMUS("data/sound/beat.wav");
 	if (gMusic == NULL)
 	{
 		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
