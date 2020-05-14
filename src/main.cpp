@@ -13,6 +13,7 @@
 #define M_PI 3.141592653589793
 #include "LTexture.h"
 #include "LButton.h"
+#include "LTimer.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -391,19 +392,17 @@ int main(int argc, char* args[])
 			int xDir = 0;
 			int yDir = 0;
 
-			//time
-			uint32_t startTime = 0;
+			//my timer
+			LTimer timer;
 			std::stringstream timeText;
-			SDL_Color textColor = { 0, 0, 0, 255 };
 
 			//While application is running
 			while (!quit)
 			{	
-				timeText.str("");
-				timeText << "timer: " << SDL_GetTicks() - startTime;
-				//Render time text
-				gTime->loadFromRenderedText(timeText.str().c_str(), textColor);
+
 				SDL_RenderClear(gRenderer);
+
+				
 				//Handle events on queue
 				while (SDL_PollEvent(&e) != 0)
 				{
@@ -421,7 +420,6 @@ int main(int argc, char* args[])
 						switch (e.key.keysym.sym)
 						{
 						case SDLK_RETURN:
-							startTime = SDL_GetTicks();
 							break;
 						case SDLK_UP:
 							milaY = (milaY - 5) % (SCREEN_HEIGHT - gTexMila->getHeight());
@@ -466,6 +464,27 @@ int main(int argc, char* args[])
 							break;
 						case SDLK_f:
 							degrees -= 15;
+							break;
+						case SDLK_t:
+							if (timer.isStarted()) {
+								timer.stop();
+							}
+							else {
+								timer.start();
+							}
+							break;
+						case SDLK_z:
+							if (timer.isPaused()) {
+								timer.unpause();
+							}
+							else {
+								timer.pause();
+							}
+							break;
+						case SDLK_u:
+							timeText.str("");
+							timeText << "Seconds since start of timer " << (timer.getTicks() / 1000.f) << "\n";
+							printf(timeText.str().c_str());
 							break;
 						default:
 							break;
@@ -539,7 +558,7 @@ int main(int argc, char* args[])
 				//use C to start/pause the music
 				if (currentKeyStates[SDL_SCANCODE_C]) {
 					if (Mix_PlayingMusic() == 0) {
-						Mix_PlayMusic(gMusic, -1); 
+						Mix_PlayMusic(gMusic, -1);
 					}
 					else {
 						if (Mix_PausedMusic() == 1) {
@@ -563,8 +582,6 @@ int main(int argc, char* args[])
 				SDL_Rect* currentClip = &gSpriteClips[frame / 4];
 				gWalkingAnim->render(SCREEN_WIDTH - currentClip->w, 0, currentClip);
 
-				gText->render(200, 200);
-				gTime->render(200, 250);
 
 				//draw buttons events
 				//for (size_t i = 0; i < TOTAL_BUTTONS; i++) {

@@ -15,9 +15,7 @@ LTexture::~LTexture() {
 
 bool LTexture::loadFromFile(std::string path) {
 	free();
-
 	SDL_Texture* newTexture = NULL;
-
 	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
 	if (loadedSurface == NULL)
 	{
@@ -39,10 +37,9 @@ bool LTexture::loadFromFile(std::string path) {
 			mWidth = loadedSurface->w;
 			mHeight = loadedSurface->h;
 		}
-
+		//SDL_FreeSurface(loadedSurface);
 	}
 	mTexture = newTexture;
-
 	return mTexture != NULL;
 }
 
