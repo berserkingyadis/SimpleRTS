@@ -37,7 +37,7 @@ bool LTexture::loadFromFile(std::string path) {
 			mWidth = loadedSurface->w;
 			mHeight = loadedSurface->h;
 		}
-		//SDL_FreeSurface(loadedSurface);
+		SDL_FreeSurface(loadedSurface);
 	}
 	mTexture = newTexture;
 	return mTexture != NULL;
@@ -67,6 +67,7 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
 			mWidth = textSurface->w;
 			mHeight = textSurface->h;
 		}
+		SDL_FreeSurface(textSurface);
 	}
 	return mTexture != NULL;
 }
