@@ -18,11 +18,11 @@ find_package(SDL2_mixer REQUIRED)
 
 include_directories(${SDL2_INCLUDE_DIR})
 include_directories(${SDL2_IMAGE_INCLUDE_DIRS})
-include_directories(${SDL2_TTF_INCLUDE_DIRS})
+include_directories(${SDL2TTF_INCLUDE_DIR})
 include_directories(${SDL2_MIXER_INCLUDE_DIRS})
 
 add_executable(SimpleRTS ${SOURCE_FILES})
-target_link_libraries(SimpleRTS ${SDL2_LIBRARY}  ${SDL2_IMAGE_LIBRARIES}  ${SDL2_TTF_LIBRARIES} ${SDL2_MIXER_LIBRARIES})
+target_link_libraries(SimpleRTS ${SDL2_LIBRARY}  ${SDL2_IMAGE_LIBRARIES}  ${SDL2TTF_LIBRARY} ${SDL2_MIXER_LIBRARIES})
 
 add_custom_command( TARGET SimpleRTS POST_BUILD
 					COMMAND ${CMAKE_COMMAND} -E copy_directory

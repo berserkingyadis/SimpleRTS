@@ -28,6 +28,12 @@
 # See the License for more information.
 #=============================================================================
 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) 
+	set(PATH_SUFFIXES lib64 lib/x64 lib)
+else() 
+	set(PATH_SUFFIXES lib/x86 lib)
+endif() 
+
 if(NOT SDL2_MIXER_INCLUDE_DIR AND SDL2MIXER_INCLUDE_DIR)
   set(SDL2_MIXER_INCLUDE_DIR ${SDL2MIXER_INCLUDE_DIR} CACHE PATH "directory cache
 entry initialized from old variable name")
@@ -36,6 +42,7 @@ find_path(SDL2_MIXER_INCLUDE_DIR SDL_mixer.h
   HINTS
     ENV SDLMIXERDIR
     ENV SDLDIR
+    $ENV{SDL2DIR}
   PATH_SUFFIXES include/SDL2 include
 )
 
@@ -48,7 +55,8 @@ find_library(SDL2_MIXER_LIBRARY
   HINTS
     ENV SDLMIXERDIR
     ENV SDLDIR
-  PATH_SUFFIXES lib
+    $ENV{SDL2DIR}
+  PATH_SUFFIXES ${PATH_SUFFIXES}
 )
 
 if(SDL2_MIXER_INCLUDE_DIR AND EXISTS "${SDL2_MIXER_INCLUDE_DIR}/SDL_mixer.h")
