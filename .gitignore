@@ -1,5 +1,6 @@
 # Windows / Visual Studio / Cmake things
 build/
+CMakeSettings.json
 .vs/
 
 # Prerequisites

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 project(SimpleRTS CXX)
 
 set(CMAKE_CXX_STANDARD 14) 
@@ -8,21 +8,20 @@ set(SOURCE_FILES
 	src/LTimer.cpp
 	src/LTexture.cpp
 	src/LButton.cpp)
-	
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
-
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
-find_package(SDL2_ttf REQUIRED)
-find_package(SDL2_mixer REQUIRED)
-
-include_directories(${SDL2_INCLUDE_DIR})
-include_directories(${SDL2_IMAGE_INCLUDE_DIRS})
-include_directories(${SDL2TTF_INCLUDE_DIR})
-include_directories(${SDL2_MIXER_INCLUDE_DIRS})
 
 add_executable(SimpleRTS ${SOURCE_FILES})
-target_link_libraries(SimpleRTS ${SDL2_LIBRARY}  ${SDL2_IMAGE_LIBRARIES}  ${SDL2TTF_LIBRARY} ${SDL2_MIXER_LIBRARIES})
+
+find_package(SDL2 CONFIG REQUIRED)
+target_link_libraries(SimpleRTS PRIVATE SDL2::SDL2 SDL2::SDL2main)
+
+find_package(sdl2-image CONFIG REQUIRED)
+target_link_libraries(SimpleRTS PRIVATE SDL2::SDL2_image)
+
+find_package(sdl2-ttf CONFIG REQUIRED)
+target_link_libraries(SimpleRTS PRIVATE SDL2::SDL2_ttf)
+
+find_package(sdl2-mixer CONFIG REQUIRED)
+target_link_libraries(SimpleRTS PRIVATE SDL2::SDL2_mixer)
 
 add_custom_command( TARGET SimpleRTS POST_BUILD
 					COMMAND ${CMAKE_COMMAND} -E copy_directory
