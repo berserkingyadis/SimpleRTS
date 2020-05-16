@@ -67,7 +67,7 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
 			mWidth = textSurface->w;
 			mHeight = textSurface->h;
 		}
-		//SDL_FreeSurface(textSurface);
+		SDL_FreeSurface(textSurface);
 	}
 	return mTexture != NULL;
 }
@@ -105,14 +105,4 @@ void LTexture::render(int x, int y, SDL_Rect* clip , double angle, SDL_Point* ce
 		renderQuad.h = clip->h;
 	}
 	SDL_RenderCopyEx(mRenderer, mTexture, clip, &renderQuad, angle, center, flip);
-}
-
-int LTexture::getWidth()
-{
-	return mWidth;
-}
-
-int LTexture::getHeight()
-{
-	return mHeight;
 }

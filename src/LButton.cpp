@@ -20,10 +20,10 @@ void LButton::setPosition(int x, int y) {
 	mPosition.y = y;
 }
 
-void LButton::handleEvent(SDL_Event* e) {
+void LButton::handleEvent(SDL_Event& e) {
 	
 
-	if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP)
+	if (e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)
 	{
 		//get mouse posi
 		int x, y;
@@ -59,7 +59,7 @@ void LButton::handleEvent(SDL_Event* e) {
 		else
 		{
 			//Set mouse over sprite
-			switch (e->type)
+			switch (e.type)
 			{
 			case SDL_MOUSEMOTION:
 				mCurrentSprite = BUTTON_SPRITE_MOUSE_OVER_MOTION;

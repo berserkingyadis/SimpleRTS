@@ -23,7 +23,7 @@ class LButton
 public:
 	LButton(SDL_Renderer* renderer = NULL, SDL_Rect* clip = NULL, LTexture* texture = NULL);
 	void setPosition(int x, int y);
-	void handleEvent(SDL_Event* e);
+	void handleEvent(SDL_Event& e);
 
 	void render();
 private:

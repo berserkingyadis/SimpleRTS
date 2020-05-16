@@ -7,7 +7,8 @@ set(SOURCE_FILES
 	src/main.cpp
 	src/LTimer.cpp
 	src/LTexture.cpp
-	src/LButton.cpp)
+	src/LButton.cpp
+	src/Dot.cpp)
 
 add_executable(SimpleRTS ${SOURCE_FILES})
 

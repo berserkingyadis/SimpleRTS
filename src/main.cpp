@@ -14,10 +14,10 @@
 #include "LTexture.h"
 #include "LButton.h"
 #include "LTimer.h"
+#include "LGlobals.h"
+#include "Dot.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+
 
 const int TEXTURES_SIZE = 1;
 
@@ -50,12 +50,11 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 
 // Text globals 
-TTF_Font* gFont = NULL;
+TTF_Font* gBigFont = NULL;
+TTF_Font* gSmallFont = NULL;
+
 LTexture* gText = NULL;
-
-// time globals
-LTexture* gTime = NULL;
-
+LTexture* gFPSText = NULL;
 
 // Button globals
 const int TOTAL_BUTTONS = 4;
@@ -69,10 +68,12 @@ const int JOYSTICK_DEAD_ZONE = 5000;
 SDL_Joystick* gGameController = NULL;
 SDL_Haptic* gControllerHaptic = NULL;
 
-
 // music globals
 Mix_Music *gMusic = NULL;
 
+// button 
+LTexture* gDotTexture;
+Dot* gDot;
 
 bool init()
 {
@@ -146,8 +147,9 @@ bool init()
 					success = false;
 				}
 
-				gFont = TTF_OpenFont("data/font/lazy.ttf", 32);
-				if (gFont == NULL)
+				gBigFont = TTF_OpenFont("data/font/LiberationMono-Regular.ttf", 26);
+				gSmallFont = TTF_OpenFont("data/font/LiberationMono-Regular.ttf", 18);
+				if (gBigFont == NULL || gSmallFont == NULL)
 				{
 					printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError());
 					success = false;
@@ -161,8 +163,6 @@ bool init()
 				}
 				else
 				{
-
-
 					//Initialize renderer color
 					for (size_t i = 0; i < TEXTURES_SIZE; i++)
 					{
@@ -171,9 +171,10 @@ bool init()
 					gTexMila = new LTexture(gRenderer);
 					gSprites = new LTexture(gRenderer);
 					gWalkingAnim = new LTexture(gRenderer);
-					gText = new LTexture(gRenderer, gFont);
-					gTime = new LTexture(gRenderer, gFont);
+					gText = new LTexture(gRenderer, gBigFont);
+					gFPSText = new LTexture(gRenderer, gSmallFont);
 					gTexButtons = new LTexture(gRenderer);
+					gDotTexture = new LTexture(gRenderer);
 
 					//load button texture early
 					if (!gTexButtons->loadFromFile("data/button/buttons.png")) {
@@ -193,19 +194,16 @@ bool init()
 					gButtons[1]->setPosition(SCREEN_WIDTH - BUTTON_WIDTH, 0);
 					gButtons[2]->setPosition(0, SCREEN_HEIGHT-BUTTON_HEIGHT);
 					gButtons[3]->setPosition(SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT);
-
 				}
-
 			}
 		}
 	}
-
 	return success;
 }
 bool loadMedia()
 {
 	if (!gTextures[0]->loadFromFile("data/pics/back.png")) {
-		printf("Failed to load image 0.png");
+		printf("Failed to load background");
 		return false;
 	}
 	if (!gTexMila->loadFromFile("data/pics/mila.png")) {
@@ -221,6 +219,11 @@ bool loadMedia()
 	}
 	if (!gWalkingAnim->loadFromFile("data/pics/walk.png")) {
 		printf("Failed to load walking animation :(");
+		return false;
+	}
+
+	if (!gDotTexture->loadFromFile("data/pics/button.png")) {
+		printf("Failed to load button :(");
 		return false;
 	}
 	//Set top left sprite
@@ -281,67 +284,13 @@ bool loadMedia()
 		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
 		return false;
 	}
+
+	gDot = new Dot(gDotTexture, gRenderer);
+
+
 	return true;
 }
 
-void close()
-{
-
-
-	//Deallocate surfaces
-	for (size_t i = 0; i < TEXTURES_SIZE; i++)
-	{
-		delete gTextures[i];
-		gTextures[i] = NULL;
-	}
-
-	for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
-		
-		delete gButtons[i];
-		gButtons[i] = NULL;
-	}
-
-	delete gTexMila;
-	gTexMila = NULL;
-
-	delete gSprites;
-	gSprites = NULL;
-
-	delete gWalkingAnim;
-	gWalkingAnim = NULL;
-
-	delete gText;
-	gText = NULL;
-
-	delete gTime;
-	gTime = NULL;
-
-	delete gTexButtons;
-	gTexButtons = NULL;
-
-	TTF_CloseFont(gFont);
-	gFont = NULL;
-
-	SDL_HapticClose(gControllerHaptic);
-	SDL_JoystickClose(gGameController);
-	gGameController = NULL;
-	gControllerHaptic = NULL;
-
-	SDL_DestroyRenderer(gRenderer);
-	gRenderer = NULL;
-	//Destroy window
-	SDL_DestroyWindow(gWindow);
-	gWindow = NULL;
-
-	Mix_FreeMusic(gMusic);
-	gMusic = NULL;
-
-	//Quit SDL subsystems
-	Mix_Quit();
-	TTF_Quit();
-	IMG_Quit();
-	SDL_Quit();
-}
 
 
 
@@ -396,13 +345,30 @@ int main(int argc, char* args[])
 			LTimer timer;
 			std::stringstream timeText;
 
+			//fps timer
+			SDL_Color textColor = {0xFF, 0xFF, 0xFF};
+
+			LTimer fpsTimer;
+			LTimer capTimer;
+
+			std::stringstream fpsText;
+			int countedFrames = 0;
+			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			fpsTimer.start();
 			//While application is running
 			while (!quit)
-			{	
-
+			{
+				capTimer.start();
 				SDL_RenderClear(gRenderer);
 
-				
+				//fps calculation and display
+				float avgFPS = countedFrames / (fpsTimer.getTicks() / 1000.f);
+				if (avgFPS > 20000)avgFPS = 0;
+				fpsText.str("");
+				fpsText << "Average FPS: " << avgFPS;
+
+				gFPSText->loadFromRenderedText(fpsText.str().c_str(), textColor);
+
 				//Handle events on queue
 				while (SDL_PollEvent(&e) != 0)
 				{
@@ -489,9 +455,8 @@ int main(int argc, char* args[])
 						default:
 							break;
 						}
-
 						gTexMila->setColor(r, g, b);
-					} 
+					}
 					else if (e.type == SDL_JOYAXISMOTION) {
 						//X axis motion
 						if (e.jaxis.axis == 0)
@@ -532,10 +497,11 @@ int main(int argc, char* args[])
 					}
 					//Handle button events
 					for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
-						gButtons[i]->handleEvent(&e);
+						gButtons[i]->handleEvent(e);
 					}
+					gDot->handleEvent(e);
 				}
-				
+
 				//calculate joystick angle
 				double joystickAngle = atan2((double)yDir, (double)xDir) * (180.0 / M_PI);
 
@@ -575,27 +541,39 @@ int main(int argc, char* args[])
 
 				gTextures[0]->render();
 				gTexMila->setAlpha(a);
-				gTexMila->render(milaX,milaY,NULL, degrees, NULL, fliptype);
+				gTexMila->render(milaX, milaY, NULL, degrees, NULL, fliptype);
 
 				gSprites->render(SCREEN_WIDTH - gDrawingSpriteClips[0].w, SCREEN_HEIGHT - gDrawingSpriteClips[0].h, &gDrawingSpriteClips[0]);
 
 				SDL_Rect* currentClip = &gSpriteClips[frame / 4];
+				SDL_Rect wall = { 100,100,30,200 };
 				gWalkingAnim->render(SCREEN_WIDTH - currentClip->w, 0, currentClip);
 
 
 				//draw buttons events
-				//for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
-				
-				//only draw bottom right buttonfor now
-				gButtons[3]->render();
+				for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
 
-				SDL_RenderPresent(gRenderer);
+					//only draw bottom right buttonfor now
+					gButtons[3]->render();
 
-				SDL_Delay(10);
-				
-				++frame;
-				if (frame / 4 >= WALKING_ANIMATION_FRAMES) {
-					frame = 0;
+					gDot->move(wall);
+					gDot->render();
+
+					//draw FPS over everything
+					gFPSText->render(10, 10);
+					SDL_RenderPresent(gRenderer);
+
+					++frame;
+					if (frame / 4 >= WALKING_ANIMATION_FRAMES) {
+						frame = 0;
+					}
+					++countedFrames;
+
+					int frameTicks = capTimer.getTicks();
+					if (frameTicks < SCREEN_TICKS_PER_FRAME) {
+						//SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
+						//SDL_Delay(19);
+					}
 				}
 			}
 		}
@@ -605,5 +583,63 @@ int main(int argc, char* args[])
 	close();
 
 	return 0;
+}
+
+
+void close()
+{
+	for (size_t i = 0; i < TEXTURES_SIZE; i++)
+	{
+		delete gTextures[i];
+		gTextures[i] = NULL;
+	}
+
+	for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
+		delete gButtons[i];
+		gButtons[i] = NULL;
+	}
+
+	delete gTexMila;
+	gTexMila = NULL;
+
+	delete gSprites;
+	gSprites = NULL;
+
+	delete gWalkingAnim;
+	gWalkingAnim = NULL;
+
+	delete gText;
+	gText = NULL;
+
+	delete gFPSText;
+	gFPSText = NULL;
+
+	delete gTexButtons;
+	gTexButtons = NULL;
+
+	TTF_CloseFont(gBigFont);
+	TTF_CloseFont(gSmallFont);
+	gBigFont = NULL;
+	gSmallFont = NULL;
+
+	SDL_HapticClose(gControllerHaptic);
+	SDL_JoystickClose(gGameController);
+	gGameController = NULL;
+	gControllerHaptic = NULL;
+
+	SDL_DestroyRenderer(gRenderer);
+	gRenderer = NULL;
+	//Destroy window
+	SDL_DestroyWindow(gWindow);
+	gWindow = NULL;
+
+	Mix_FreeMusic(gMusic);
+	gMusic = NULL;
+
+	//Quit SDL subsystems
+	Mix_Quit();
+	TTF_Quit();
+	IMG_Quit();
+	SDL_Quit();
 }
 
