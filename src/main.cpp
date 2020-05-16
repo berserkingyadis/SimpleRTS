@@ -550,30 +550,33 @@ int main(int argc, char* args[])
 				gWalkingAnim->render(SCREEN_WIDTH - currentClip->w, 0, currentClip);
 
 
+				gDot->move(wall);
+				gDot->render();
+
+				SDL_SetRenderDrawColor(gRenderer, 50, 50,50, 0xFF);
+				SDL_RenderFillRect(gRenderer, &wall);
 				//draw buttons events
 				for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
 
 					//only draw bottom right buttonfor now
 					gButtons[3]->render();
+					
+				}
 
-					gDot->move(wall);
-					gDot->render();
+				//draw FPS over everything
+				gFPSText->render(10, 10);
+				SDL_RenderPresent(gRenderer);
 
-					//draw FPS over everything
-					gFPSText->render(10, 10);
-					SDL_RenderPresent(gRenderer);
+				++frame;
+				if (frame / 4 >= WALKING_ANIMATION_FRAMES) {
+					frame = 0;
+				}
+				++countedFrames;
 
-					++frame;
-					if (frame / 4 >= WALKING_ANIMATION_FRAMES) {
-						frame = 0;
-					}
-					++countedFrames;
-
-					int frameTicks = capTimer.getTicks();
-					if (frameTicks < SCREEN_TICKS_PER_FRAME) {
-						//SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
-						//SDL_Delay(19);
-					}
+				int frameTicks = capTimer.getTicks();
+				if (frameTicks < SCREEN_TICKS_PER_FRAME) {
+					//SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
+					//SDL_Delay(19);
 				}
 			}
 		}

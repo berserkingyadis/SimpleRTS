@@ -42,7 +42,7 @@ void Dot::move(SDL_Rect& wall)
 {
 	mPosX += mVelX;
 	mCollider.x = mPosX;
-	if (mPosX < 0 || (mPosX + DOT_WIDTH > SCREEN_WIDTH)) {
+	if (mPosX < 0 || (mPosX + DOT_WIDTH > SCREEN_WIDTH) || checkCollision(mCollider, wall)) {
 		mPosX -= mVelX;
 		mCollider.x = mPosX;
 	}
