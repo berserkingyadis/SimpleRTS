@@ -21,7 +21,6 @@
 
 
 
-const int TEXTURES_SIZE = 1;
 
 const int BUTTON_WIDTH = 300;
 const int BUTTON_HEIGHT = 200;
@@ -36,7 +35,6 @@ bool loadMedia();
 void close();
 
 
-LTexture* gTextures[TEXTURES_SIZE];
 LTexture* gTexMila;
 LTexture* gSprites;
 SDL_Rect gDrawingSpriteClips[4];
@@ -52,10 +50,9 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 
 // Text globals 
-TTF_Font* gBigFont = NULL;
 TTF_Font* gSmallFont = NULL;
 
-LTexture* gText = NULL;
+LTexture* gInputText = NULL;
 LTexture* gFPSText = NULL;
 
 // Button globals
@@ -64,11 +61,6 @@ SDL_Rect gButtonClips[TOTAL_BUTTONS];
 
 LButton* gButtons[TOTAL_BUTTONS];
 LTexture* gTexButtons;
-
-// gamepad globals
-const int JOYSTICK_DEAD_ZONE = 5000;
-SDL_Joystick* gGameController = NULL;
-SDL_Haptic* gControllerHaptic = NULL;
 
 // music globals
 Mix_Music *gMusic = NULL;
@@ -102,34 +94,6 @@ bool init()
 			printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
 			success = false;
 		}
-		//Check for joysticks
-		if (SDL_NumJoysticks() < 1) {
-			printf("Warning: No joysticks have been found by SDL!\n");
-		}
-		else {
-			//Load Joystick
-			gGameController = SDL_JoystickOpen(0);
-			if (gGameController == NULL)
-			{
-				printf("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
-			}
-			else {
-				//Get controller haptic device
-				gControllerHaptic = SDL_HapticOpenFromJoystick(gGameController);
-				if (gControllerHaptic == NULL)
-				{
-					printf("Warning: Controller does not support haptics! SDL Error: %s\n", SDL_GetError());
-				}
-				else
-				{
-					//Get initialize rumble
-					if (SDL_HapticRumbleInit(gControllerHaptic) < 0)
-					{
-						printf("Warning: Unable to initialize rumble! SDL Error: %s\n", SDL_GetError());
-					}
-				}
-			}
-		}
 		//Create window
 		gWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 		if (gWindow == NULL)
@@ -156,11 +120,10 @@ bool init()
 					success = false;
 				}
 
-				gBigFont = TTF_OpenFont("data/font/LiberationMono-Regular.ttf", 26);
 				gSmallFont = TTF_OpenFont("data/font/LiberationMono-Regular.ttf", 18);
-				if (gBigFont == NULL || gSmallFont == NULL)
+				if (gSmallFont == NULL)
 				{
-					printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError());
+					printf("Failed to load  font! SDL_ttf Error: %s\n", TTF_GetError());
 					success = false;
 				}
 				gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -172,15 +135,10 @@ bool init()
 				}
 				else
 				{
-					//Initialize renderer color
-					for (size_t i = 0; i < TEXTURES_SIZE; i++)
-					{
-						gTextures[i] = new LTexture(gRenderer);
-					}
 					gTexMila = new LTexture(gRenderer);
 					gSprites = new LTexture(gRenderer);
 					gWalkingAnim = new LTexture(gRenderer);
-					gText = new LTexture(gRenderer, gBigFont);
+					gInputText = new LTexture(gRenderer, gSmallFont);
 					gFPSText = new LTexture(gRenderer, gSmallFont);
 					gTexButtons = new LTexture(gRenderer);
 					gDotTexture = new LTexture(gRenderer);
@@ -211,16 +169,9 @@ bool init()
 }
 bool loadMedia()
 {
-	if (!gTextures[0]->loadFromFile("data/pics/back.png")) {
-		printf("Failed to load background");
-		return false;
-	}
 	if (!gTexMila->loadFromFile("data/pics/mila.png")) {
 		printf("Failed to load mila :(");
 		return false;
-	}
-	else {
-		gTexMila->setBlendMode(SDL_BLENDMODE_BLEND);
 	}
 	if (!gSprites->loadFromFile("data/pics/sprites.png")) {
 		printf("Failed to load sprites :(");
@@ -280,13 +231,6 @@ bool loadMedia()
 	gSpriteClips[3].w = 64;
 	gSpriteClips[3].h = 205;
 
-	SDL_Color textColor = { 0,0,0 };
-	if (!gText->loadFromRenderedText("Press Enter to Reset start time :)", textColor))
-	{
-		printf("Failed to render text texture!\n");
-		return false;
-	}
-	
 	gMusic = Mix_LoadMUS("data/sound/beat.wav");
 	if (gMusic == NULL)
 	{
@@ -354,19 +298,29 @@ int main(int argc, char* args[])
 			std::stringstream timeText;
 
 			//fps timer
-			SDL_Color textColor = {0xFF, 0xFF, 0xFF};
+			SDL_Color textColor = {0, 0, 0};
 
 			LTimer fpsTimer;
 			LTimer capTimer;
 
 			std::stringstream fpsText;
+
+			//text input stuff
+			std::string inputText = "Some text";
+			gInputText->loadFromRenderedText(inputText.c_str(),textColor);
+
+
 			int countedFrames = 0;
 			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 			fpsTimer.start();
 			//While application is running
 			while (!quit)
-			{
+			{	
+
 				capTimer.start();
+				
+				bool renderText = false;
+
 				SDL_RenderClear(gRenderer);
 
 				//fps calculation and display
@@ -387,9 +341,7 @@ int main(int argc, char* args[])
 					}
 					//User presses a key
 					else if (e.type == SDL_KEYDOWN)
-					{
-						//SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-
+					{	
 						//Select surfaces based on key press
 						switch (e.key.keysym.sym)
 						{
@@ -451,44 +403,6 @@ int main(int argc, char* args[])
 						}
 						gTexMila->setColor(r, g, b);
 					}
-					else if (e.type == SDL_JOYAXISMOTION) {
-						//X axis motion
-						if (e.jaxis.axis == 0)
-						{
-							//Left of dead zone
-							if (e.jaxis.value < -JOYSTICK_DEAD_ZONE)
-							{
-								xDir = -1;
-							}
-							//Right of dead zone
-							else if (e.jaxis.value > JOYSTICK_DEAD_ZONE)
-							{
-								xDir = 1;
-							}
-							else
-							{
-								xDir = 0;
-							}
-						}
-						//Y axis motion
-						else if (e.jaxis.axis == 1)
-						{
-							//Below of dead zone
-							if (e.jaxis.value < -JOYSTICK_DEAD_ZONE)
-							{
-								yDir = -1;
-							}
-							//Above of dead zone
-							else if (e.jaxis.value > JOYSTICK_DEAD_ZONE)
-							{
-								yDir = 1;
-							}
-							else
-							{
-								yDir = 0;
-							}
-						}
-					}
 					//Handle button events
 					for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
 						gButtons[i]->handleEvent(e);
@@ -496,24 +410,10 @@ int main(int argc, char* args[])
 					gDotCirclePlayer->handleEvent(e);
 				}
 
-				//calculate joystick angle
-				double joystickAngle = atan2((double)yDir, (double)xDir) * (180.0 / M_PI);
-
-				//Correct angle
-				if (xDir == 0 && yDir == 0)
-				{
-					joystickAngle = 0;
-				}
 				//check ESC key state to exit
 				const uint8_t* currentKeyStates = SDL_GetKeyboardState(NULL);
 				if (currentKeyStates[SDL_SCANCODE_ESCAPE]) {
 					quit = true;
-				}
-				if (currentKeyStates[SDL_SCANCODE_B]) {
-					if (SDL_HapticRumblePlay(gControllerHaptic, 1, 20000) != 0)
-					{
-						printf("Warning: Unable to play rumble! %s\n", SDL_GetError());
-					}
 				}
 				//use C to start/pause the music
 				if (currentKeyStates[SDL_SCANCODE_C]) {
@@ -533,9 +433,8 @@ int main(int argc, char* args[])
 					Mix_HaltMusic();
 				}
 
-				gTextures[0]->render();
 				gTexMila->setAlpha(a);
-				gTexMila->render(milaX, milaY, NULL, degrees, NULL);
+				gTexMila->render(0, SCREEN_HEIGHT-gTexMila->getHeight(), NULL, degrees, NULL);
 
 				gSprites->render(SCREEN_WIDTH - gDrawingSpriteClips[0].w, SCREEN_HEIGHT - gDrawingSpriteClips[0].h, &gDrawingSpriteClips[0]);
 
@@ -547,17 +446,13 @@ int main(int argc, char* args[])
 
 				SDL_SetRenderDrawColor(gRenderer, 50, 50,50, 0xFF);
 				SDL_RenderFillRect(gRenderer, &wall);
-				//draw buttons events
-				for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
-
-					//only draw bottom right buttonfor now
-					gButtons[3]->render();
-					
-				}
-
+				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+				gButtons[3]->render();
 				gDotCirclePlayer->move(wall, gDotCircleStatic->getCollider());
 				gDotCirclePlayer->render();
 				gDotCircleStatic->render();
+
+				gInputText->render(300, 150);
 				//draw FPS over everything
 				gFPSText->render(10, 10);
 				SDL_RenderPresent(gRenderer);
@@ -579,19 +474,13 @@ int main(int argc, char* args[])
 
 	//Free resources and close SDL
 	close();
-
+	SDL_StopTextInput();
 	return 0;
 }
 
 
 void close()
 {
-	for (size_t i = 0; i < TEXTURES_SIZE; i++)
-	{
-		delete gTextures[i];
-		gTextures[i] = NULL;
-	}
-
 	for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
 		delete gButtons[i];
 		gButtons[i] = NULL;
@@ -606,8 +495,8 @@ void close()
 	delete gWalkingAnim;
 	gWalkingAnim = NULL;
 
-	delete gText;
-	gText = NULL;
+	delete gInputText;
+	gInputText = NULL;
 
 	delete gFPSText;
 	gFPSText = NULL;
@@ -615,15 +504,8 @@ void close()
 	delete gTexButtons;
 	gTexButtons = NULL;
 
-	TTF_CloseFont(gBigFont);
 	TTF_CloseFont(gSmallFont);
-	gBigFont = NULL;
 	gSmallFont = NULL;
-
-	SDL_HapticClose(gControllerHaptic);
-	SDL_JoystickClose(gGameController);
-	gGameController = NULL;
-	gControllerHaptic = NULL;
 
 	SDL_DestroyRenderer(gRenderer);
 	gRenderer = NULL;
