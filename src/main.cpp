@@ -75,6 +75,14 @@ DotCircle* gDotCircleStatic;
 SDL_Rect wall = { 230,100,30,200 };
 
 
+//Particles
+LTexture* gRedTexture;
+LTexture* gGreenTexture;
+LTexture* gBlueTexture;
+LTexture* gShimmerTexture;
+
+
+
 
 bool init()
 {
@@ -142,6 +150,10 @@ bool init()
 					gFPSText = new LTexture(gRenderer, gSmallFont);
 					gTexButtons = new LTexture(gRenderer);
 					gDotTexture = new LTexture(gRenderer);
+					gRedTexture = new LTexture(gRenderer);
+					gGreenTexture = new LTexture(gRenderer);
+					gBlueTexture = new LTexture(gRenderer);
+					gShimmerTexture = new LTexture(gRenderer);
 
 					//load button texture early
 					if (!gTexButtons->loadFromFile("data/button/buttons.png")) {
@@ -186,6 +198,17 @@ bool loadMedia()
 		printf("Failed to load dot :(");
 		return false;
 	}
+
+	gRedTexture->loadFromFile("data/pics/particles/red.bmp");
+	gGreenTexture->loadFromFile("data/pics/particles/green.bmp");
+	gBlueTexture->loadFromFile("data/pics/particles/blue.bmp");
+	gShimmerTexture->loadFromFile("data/pics/particles/shimmer.bmp");
+
+	gRedTexture->setAlpha(192);
+	gGreenTexture->setAlpha(192);
+	gBlueTexture->setAlpha(192);
+	gShimmerTexture->setAlpha(192);
+
 	//Set top left sprite
 	gDrawingSpriteClips[0].x = 0;
 	gDrawingSpriteClips[0].y = 0;
@@ -487,34 +510,22 @@ void close()
 	}
 
 	delete gTexMila;
-	gTexMila = NULL;
-
 	delete gSprites;
-	gSprites = NULL;
-
 	delete gWalkingAnim;
-	gWalkingAnim = NULL;
-
 	delete gInputText;
-	gInputText = NULL;
-
 	delete gFPSText;
-	gFPSText = NULL;
-
 	delete gTexButtons;
-	gTexButtons = NULL;
+	delete gRedTexture;
+	delete gGreenTexture;
+	delete gBlueTexture;
+	delete gShimmerTexture;
 
 	TTF_CloseFont(gSmallFont);
-	gSmallFont = NULL;
 
 	SDL_DestroyRenderer(gRenderer);
-	gRenderer = NULL;
-	//Destroy window
 	SDL_DestroyWindow(gWindow);
-	gWindow = NULL;
 
 	Mix_FreeMusic(gMusic);
-	gMusic = NULL;
 
 	//Quit SDL subsystems
 	Mix_Quit();

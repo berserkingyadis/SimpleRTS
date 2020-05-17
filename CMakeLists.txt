@@ -3,17 +3,13 @@ project(SimpleRTS CXX)
 
 set(CMAKE_CXX_STANDARD 14) 
 
-set(SOURCE_FILES 
-	src/main.cpp
-	src/LTimer.cpp
-	src/LTexture.cpp
-	src/LButton.cpp
-	src/DotRect.cpp
-	src/DotCircle.cpp
-	src/Collision.cpp)
+file (GLOB_RECURSE sources src/*.cpp)
 
-add_executable(SimpleRTS ${SOURCE_FILES})
+set(SOURCE_FILES ${sources})
 
+add_executable(SimpleRTS ${SOURCE_FILES} )
+
+#if you do not find the packages, consider using vcpkg
 find_package(SDL2 CONFIG REQUIRED)
 target_link_libraries(SimpleRTS PRIVATE SDL2::SDL2 SDL2::SDL2main)
 
