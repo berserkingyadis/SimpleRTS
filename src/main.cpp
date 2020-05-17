@@ -10,12 +10,14 @@
 #include <sstream>
 #include <cmath>
 
-#define M_PI 3.141592653589793
+
 #include "LTexture.h"
 #include "LButton.h"
 #include "LTimer.h"
 #include "LGlobals.h"
-#include "Dot.h"
+
+#include "DotRect.h"
+#include "DotCircle.h"
 
 
 
@@ -73,7 +75,14 @@ Mix_Music *gMusic = NULL;
 
 // button 
 LTexture* gDotTexture;
-Dot* gDot;
+DotRect* gDot;
+
+//button 2
+DotCircle* gDotCirclePlayer;
+DotCircle* gDotCircleStatic;
+SDL_Rect wall = { 230,100,30,200 };
+
+
 
 bool init()
 {
@@ -222,8 +231,8 @@ bool loadMedia()
 		return false;
 	}
 
-	if (!gDotTexture->loadFromFile("data/pics/button.png")) {
-		printf("Failed to load button :(");
+	if (!gDotTexture->loadFromFile("data/pics/dot.png")) {
+		printf("Failed to load dot :(");
 		return false;
 	}
 	//Set top left sprite
@@ -285,8 +294,10 @@ bool loadMedia()
 		return false;
 	}
 
-	gDot = new Dot(gDotTexture, gRenderer);
+	gDot = new DotRect(gDotTexture);
 
+	gDotCirclePlayer = new DotCircle(100, 100, gDotTexture);
+	gDotCircleStatic = new DotCircle(200, 200, gDotTexture);
 
 	return true;
 }
@@ -333,9 +344,6 @@ int main(int argc, char* args[])
 
 			//angle of rotaiton
 			double degrees = 0;
-
-			//flip type
-			SDL_RendererFlip fliptype = SDL_FLIP_NONE;
 
 			//joystick 
 			int xDir = 0;
@@ -386,20 +394,6 @@ int main(int argc, char* args[])
 						switch (e.key.keysym.sym)
 						{
 						case SDLK_RETURN:
-							break;
-						case SDLK_UP:
-							milaY = (milaY - 5) % (SCREEN_HEIGHT - gTexMila->getHeight());
-							break;
-						case SDLK_DOWN:
-							milaY = (milaY + 5) % (SCREEN_HEIGHT - gTexMila->getHeight());
-							break;
-						case SDLK_LEFT:
-							if (fliptype == SDL_FLIP_NONE)fliptype = SDL_FLIP_HORIZONTAL;
-							milaX = (milaX - 5) % (SCREEN_WIDTH - gTexMila->getWidth());
-							break;
-						case SDLK_RIGHT:
-							if (fliptype == SDL_FLIP_HORIZONTAL)fliptype = SDL_FLIP_NONE;
-							milaX = (milaX + 5) % (SCREEN_WIDTH - gTexMila->getWidth());
 							break;
 						case SDLK_q:
 							r += 32;
@@ -499,7 +493,7 @@ int main(int argc, char* args[])
 					for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
 						gButtons[i]->handleEvent(e);
 					}
-					gDot->handleEvent(e);
+					gDotCirclePlayer->handleEvent(e);
 				}
 
 				//calculate joystick angle
@@ -541,17 +535,15 @@ int main(int argc, char* args[])
 
 				gTextures[0]->render();
 				gTexMila->setAlpha(a);
-				gTexMila->render(milaX, milaY, NULL, degrees, NULL, fliptype);
+				gTexMila->render(milaX, milaY, NULL, degrees, NULL);
 
 				gSprites->render(SCREEN_WIDTH - gDrawingSpriteClips[0].w, SCREEN_HEIGHT - gDrawingSpriteClips[0].h, &gDrawingSpriteClips[0]);
 
 				SDL_Rect* currentClip = &gSpriteClips[frame / 4];
-				SDL_Rect wall = { 100,100,30,200 };
+				
 				gWalkingAnim->render(SCREEN_WIDTH - currentClip->w, 0, currentClip);
 
 
-				gDot->move(wall);
-				gDot->render();
 
 				SDL_SetRenderDrawColor(gRenderer, 50, 50,50, 0xFF);
 				SDL_RenderFillRect(gRenderer, &wall);
@@ -563,6 +555,9 @@ int main(int argc, char* args[])
 					
 				}
 
+				gDotCirclePlayer->move(wall, gDotCircleStatic->getCollider());
+				gDotCirclePlayer->render();
+				gDotCircleStatic->render();
 				//draw FPS over everything
 				gFPSText->render(10, 10);
 				SDL_RenderPresent(gRenderer);

@@ -1,8 +1,8 @@
-#include "Dot.h"
+#include "DotRect.h"
 
 #include "Collision.h"
 
-Dot::Dot(LTexture* texture, SDL_Renderer* renderer)
+DotRect::DotRect(LTexture* texture)
 {
 	mPosX = 0;
 	mPosY = 0;
@@ -14,10 +14,9 @@ Dot::Dot(LTexture* texture, SDL_Renderer* renderer)
 	mCollider.h = DOT_HEIGHT;
 
 	mTexture = texture;
-	mRenderer = renderer;
 }
 
-void Dot::handleEvent(SDL_Event& e)
+void DotRect::handleEvent(SDL_Event& e)
 {
 	if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
 		switch (e.key.keysym.sym) {
@@ -38,7 +37,7 @@ void Dot::handleEvent(SDL_Event& e)
 	}
 }
 
-void Dot::move(SDL_Rect& wall)
+void DotRect::move(SDL_Rect& wall)
 {
 	mPosX += mVelX;
 	mCollider.x = mPosX;
@@ -50,13 +49,13 @@ void Dot::move(SDL_Rect& wall)
 
 	mPosY += mVelY;
 	mCollider.y = mPosY;
-	if (mPosY < 0 || (mPosY + DOT_HEIGHT > SCREEN_HEIGHT)) {
+	if (mPosY < 0 || (mPosY + DOT_HEIGHT > SCREEN_HEIGHT) || checkCollision(mCollider, wall)) {
 		mPosY -= mVelY;
 		mCollider.y = mPosY;
 	}
 }
 
-void Dot::render()
+void DotRect::render()
 {
 	mTexture->render(mPosX, mPosY);
 }

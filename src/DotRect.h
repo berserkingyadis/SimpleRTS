@@ -1,12 +1,12 @@
-#ifndef DOT_H
-#define DOT_H
+#ifndef DOTRECT_H
+#define DOTRECT_H
 
 #include "SDL.h"
 
 #include "LTexture.h"
 #include "LGlobals.h"
 
-class Dot
+class DotRect
 {
 public: 
 
@@ -17,7 +17,7 @@ public:
 	// maximum axis velocity
 	static const int DOT_VEL = 10;
 
-	Dot(LTexture* texture, SDL_Renderer* renderer);
+	DotRect(LTexture* texture);
 
 	void handleEvent(SDL_Event& e);
 
@@ -31,7 +31,6 @@ private:
 	int mVelX, mVelY;
 
 	LTexture* mTexture;
-	SDL_Renderer* mRenderer;
 
 	SDL_Rect mCollider;
 };
