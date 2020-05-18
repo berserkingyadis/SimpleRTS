@@ -57,7 +57,7 @@ LTexture* gShimmerTexture;
 SDL_Color textColor = { 0xFF, 0xFF ,0xFF ,0xFF };
 SDL_Color wallColor = textColor;
 SDL_Color backGroundColor = { 50,50,50, 0xFF };
-
+SDL_Color dragRectColor = { 192, 192, 192, 64 };
 //Event handler
 SDL_Event e;
 
@@ -68,7 +68,7 @@ LTimer capTimer;
 std::stringstream fpsText;
 std::stringstream antsText;
 
-const int CREATE_THISMANY_ANTS = 200;
+const int CREATE_THISMANY_ANTS = 30000;
 int COUNT_ANTS = 0;
 
 std::vector<DotCircleAnt*> ants;
@@ -127,6 +127,8 @@ bool init()
 	}
 	else
 	{
+		SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
+
 		gFPSText = new LTexture(gRenderer, gSmallFont);
 		gAntsText = new LTexture(gRenderer, gSmallFont);
 		gPlayerTexture = new LTexture(gRenderer);
@@ -218,6 +220,13 @@ int main(int argc, char* args[])
 			//Main loop flag
 			bool quit = false;
 
+			bool dragging = false;
+			bool killSwitch = false;
+			int mouseDragbeginX = 0;
+			int mouseDragbeginY = 0;
+			int mouseDragEndX = 0;
+			int mouseDragEndY = 0;
+			SDL_Rect dragRect;
 			
 
 			bool redrawAnts = false;
@@ -274,6 +283,28 @@ int main(int argc, char* args[])
 							break;
 						}
 					}
+					else if (e.type == SDL_MOUSEBUTTONDOWN) {
+						if (!dragging) {
+							SDL_GetMouseState(&mouseDragbeginX, &mouseDragbeginY);
+							SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
+							dragging = true;
+						}
+					}
+					else if (e.type == SDL_MOUSEMOTION) {
+						if (dragging) {
+							SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
+							dragRect.x = MIN(mouseDragbeginX, mouseDragEndX);
+							dragRect.y = MIN(mouseDragbeginY, mouseDragEndY);
+							int w = mouseDragbeginX - mouseDragEndX;
+							int h = mouseDragbeginY - mouseDragEndY;
+							dragRect.w = ABS(w);
+							dragRect.h = ABS(h);
+						}
+					}
+					else if (e.type == SDL_MOUSEBUTTONUP) {
+						dragging = false;
+						killSwitch = true;
+					}
 					gDotCirclePlayer->handleEvent(e);
 				}
 
@@ -285,6 +316,7 @@ int main(int argc, char* args[])
 					a->update();
 					a->move(wall, gDotCircleStatic->getCollider(), gDotCirclePlayer->getCollider());
 
+					if (killSwitch && checkCollision(a->getCollider(), dragRect)) a->mDead = true;
 					if (a->mDead) {
 						iter = ants.erase(iter);
 						delete a;
@@ -296,10 +328,13 @@ int main(int argc, char* args[])
 					}
 				}
 				
-				
+				if (killSwitch)killSwitch = false;
 
 				// --- RENDERING  ---  
+				
+				
 				SDL_RenderClear(gRenderer);
+
 				SDL_SetRenderDrawColor(gRenderer, wallColor);
 				SDL_RenderFillRect(gRenderer, &wall);
 				SDL_SetRenderDrawColor(gRenderer, backGroundColor);
@@ -308,15 +343,19 @@ int main(int argc, char* args[])
 				gDotCirclePlayer->render();
 				gDotCircleStatic->render();
 
+
 				for (DotCircleAnt* a : ants)a->render();
 
-				//draw FPS over everything
+				if (dragging) {
+					SDL_SetRenderDrawColor(gRenderer, dragRectColor);
+					SDL_RenderFillRect(gRenderer, &dragRect);
+					SDL_SetRenderDrawColor(gRenderer, backGroundColor);
+				}
+								//draw FPS over everything
 				gFPSText->render(10, 10);
 				gAntsText->render(10, 40);
 
 				SDL_RenderPresent(gRenderer);
-
-			
 			}
 		}
 	}

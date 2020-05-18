@@ -6,7 +6,7 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define CLAP(a, min, max) (MIN(MAX((a),(min))(max)))
-#define ABS(a) ((a) < 0 ? (-a) : (a))
+#define ABS(a) ((a < 0 ) ? (-a) : (a))
 
 #ifndef M_PI
 	#define M_PI 3.141592653589793
