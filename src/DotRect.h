@@ -23,9 +23,7 @@ public:
 
 	void move(SDL_Rect& wall);
 	void render();
-
 private:
-
 	//positions
 	int mPosX, mPosY;
 	int mVelX, mVelY;
