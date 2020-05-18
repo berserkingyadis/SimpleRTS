@@ -30,16 +30,23 @@ bool loadMedia();
 //Frees media and shuts down SDL
 void close();
 
+//Ant spawning and destruction
+void allocateAnts();
+void deleteAllAnts();
+
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
 SDL_Renderer* gRenderer = NULL;
 
 // Text globals 
+TTF_Font* gFont = NULL;
 TTF_Font* gSmallFont = NULL;
+
 
 LTexture* gFPSText = NULL;
 LTexture* gAntsText = NULL;
+LTexture* gFrameTimeText = NULL;
 
 LTexture* gPlayerTexture;
 LTexture* gAntTexture;
@@ -67,8 +74,9 @@ LTimer capTimer;
 
 std::stringstream fpsText;
 std::stringstream antsText;
+std::stringstream frameTimeText;
 
-const int CREATE_THISMANY_ANTS = 30000;
+const int CREATE_THISMANY_ANTS =3000;
 int COUNT_ANTS = 0;
 
 std::vector<DotCircleAnt*> ants;
@@ -112,8 +120,9 @@ bool init()
 		success = false;
 	}
 
-	gSmallFont = TTF_OpenFont("data/font/LiberationMono-Regular.ttf", 18);
-	if (gSmallFont == NULL)
+	gFont = TTF_OpenFont("data/font/LiberationMono-Regular.ttf", 16);
+	gSmallFont = TTF_OpenFont("data/font/LiberationMono-Regular.ttf", 12);
+	if (gFont == NULL || gSmallFont == NULL)
 	{
 		printf("Failed to load  font! SDL_ttf Error: %s\n", TTF_GetError());
 		success = false;
@@ -129,8 +138,9 @@ bool init()
 	{
 		SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
 
-		gFPSText = new LTexture(gRenderer, gSmallFont);
-		gAntsText = new LTexture(gRenderer, gSmallFont);
+		gFPSText = new LTexture(gRenderer, gFont);
+		gAntsText = new LTexture(gRenderer, gFont);
+		gFrameTimeText = new LTexture(gRenderer, gSmallFont);
 		gPlayerTexture = new LTexture(gRenderer);
 		gAntTexture = new LTexture(gRenderer);
 		gRedTexture = new LTexture(gRenderer);
@@ -143,30 +153,6 @@ bool init()
 	return success;
 }
 
-void allocateAnts() {
-	int c = 0;
-	while (c < CREATE_THISMANY_ANTS) {
-		int x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH;
-		int y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
-
-		DotCircleAnt* a = new DotCircleAnt(x, y, gAntTexture);
-
-		if (checkCollision(a->getCollider(), wall) || checkCollision(a->getCollider(), gDotCircleStatic->getCollider())) {
-			delete a;
-		}
-		else {
-			ants.push_back(a);
-			c++;
-		}
-	}
-	COUNT_ANTS += CREATE_THISMANY_ANTS;
-}
-
-void deleteAllAnts() {
-	for (auto p : ants) delete p;
-	ants.clear();
-	COUNT_ANTS = 0;
-}
 bool loadMedia()
 {
 	gPlayerTexture->loadFromFile("data/pics/agent.png");
@@ -183,13 +169,6 @@ bool loadMedia()
 
 	gDotCirclePlayer = new DotCircle(100, 100, gPlayerTexture);
 	gDotCircleStatic = new DotCircle(200, 200, gPlayerTexture);
-
-	
-	//place COUNT_ANTS random ant dots
-	allocateAnts();
-		
-
-		//if the created ant collides with the wall, do not add it.
 		
 	antsText.str("");
 	antsText << "Ants alive: " << COUNT_ANTS;
@@ -236,7 +215,7 @@ int main(int argc, char* args[])
 			//While application is running
 			while (!quit)
 			{	
-				capTimer.start();
+				
 				
 
 				// --- INPUT AND UPDATE  ---  
@@ -247,6 +226,13 @@ int main(int argc, char* args[])
 				fpsText.str("");
 				fpsText << "Average FPS: " << avgFPS;
 				gFPSText->loadFromRenderedText(fpsText.str().c_str(), textColor);
+
+				//frametime display
+				uint32_t frameTime = capTimer.getTicks();
+				frameTimeText.str("");
+				frameTimeText << "last frametime: " << frameTime << " ms";
+				gFrameTimeText->loadFromRenderedText(frameTimeText.str().c_str(), textColor);
+				capTimer.start();
 
 				if (redrawAnts) {
 					antsText.str("");
@@ -304,6 +290,7 @@ int main(int argc, char* args[])
 					else if (e.type == SDL_MOUSEBUTTONUP) {
 						dragging = false;
 						killSwitch = true;
+
 					}
 					gDotCirclePlayer->handleEvent(e);
 				}
@@ -328,7 +315,13 @@ int main(int argc, char* args[])
 					}
 				}
 				
-				if (killSwitch)killSwitch = false;
+				if (killSwitch) {
+					killSwitch = false;
+					dragRect.x = 0;
+					dragRect.y = 0;
+					dragRect.h = 0;
+					dragRect.w = 0;
+				}
 
 				// --- RENDERING  ---  
 				
@@ -354,7 +347,7 @@ int main(int argc, char* args[])
 								//draw FPS over everything
 				gFPSText->render(10, 10);
 				gAntsText->render(10, 40);
-
+				gFrameTimeText->render(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 10);
 				SDL_RenderPresent(gRenderer);
 			}
 		}
@@ -366,6 +359,31 @@ int main(int argc, char* args[])
 	return 0;
 }
 
+
+void allocateAnts() {
+	int c = 0;
+	while (c < CREATE_THISMANY_ANTS) {
+		int x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH;
+		int y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
+
+		DotCircleAnt* a = new DotCircleAnt(x, y, gAntTexture);
+
+		if (checkCollision(a->getCollider(), wall) || checkCollision(a->getCollider(), gDotCircleStatic->getCollider())) {
+			delete a;
+		}
+		else {
+			ants.push_back(a);
+			c++;
+		}
+	}
+	COUNT_ANTS += CREATE_THISMANY_ANTS;
+}
+
+void deleteAllAnts() {
+	for (auto p : ants) delete p;
+	ants.clear();
+	COUNT_ANTS = 0;
+}
 
 void close()
 {
@@ -380,7 +398,7 @@ void close()
 
 	deleteAllAnts();
 
-	TTF_CloseFont(gSmallFont);
+	TTF_CloseFont(gFont);
 
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);

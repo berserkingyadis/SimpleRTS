@@ -38,8 +38,6 @@ void LTimer::unpause()
 
 uint32_t LTimer::getTicks()
 {
-	
-
 	uint32_t time = 0;
 
 	if (mStarted) {
@@ -50,7 +48,6 @@ uint32_t LTimer::getTicks()
 			time = SDL_GetTicks() - mStartTicks;
 		}
 	}
-
 	return time;
 }
 

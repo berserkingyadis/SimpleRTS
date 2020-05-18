@@ -35,6 +35,5 @@ std::istream& operator>>(std::istream& is, Vector2& vec)
 {
 	is >> vec.mX;
 	is >> vec.mY;
-
 	return is;
 }
