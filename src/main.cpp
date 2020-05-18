@@ -84,7 +84,7 @@ std::vector<DotCircleAnt*> ants;
 bool init()
 {
 
-	srand(time(NULL));
+	srand(666);
 
 	//Initialization flag
 	bool success = true;

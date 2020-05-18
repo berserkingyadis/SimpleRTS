@@ -6,7 +6,7 @@ Particle::Particle(int x, int y)
 
 }
 
-void Particle::render()
+void Particle::render() const
 {
 }
 

@@ -7,7 +7,7 @@ class Particle
 {
 public:
 	Particle(int x, int y);
-	void render();
+	void render() const;
 	bool isDead();
 private:
 	int mPosX, mPosY;

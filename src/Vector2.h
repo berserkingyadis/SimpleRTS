@@ -11,7 +11,6 @@ public:
 	int32_t mY = 0;
 
 	Vector2(int32_t ix = 0, int32_t iy = 0) : mX(ix), mY(iy) {}
-	Vector2(Vector2& v) : mX(v.mX), mY(v.mY) {}
 
 	inline void flip() { mX = -mX; mY = -mY; }
 
