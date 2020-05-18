@@ -4,7 +4,6 @@ project(SimpleRTS CXX)
 set(CMAKE_CXX_STANDARD 14) 
 
 file (GLOB_RECURSE sources src/*.cpp)
-
 set(SOURCE_FILES ${sources})
 
 add_executable(SimpleRTS ${SOURCE_FILES} )
