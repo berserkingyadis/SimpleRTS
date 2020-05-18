@@ -68,7 +68,8 @@ LTimer capTimer;
 std::stringstream fpsText;
 std::stringstream antsText;
 
-int COUNT_ANTS = 300;
+const int CREATE_THISMANY_ANTS = 200;
+int COUNT_ANTS = 0;
 
 std::vector<DotCircleAnt*> ants;
 
@@ -139,6 +140,31 @@ bool init()
 	
 	return success;
 }
+
+void allocateAnts() {
+	int c = 0;
+	while (c < CREATE_THISMANY_ANTS) {
+		int x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH;
+		int y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
+
+		DotCircleAnt* a = new DotCircleAnt(x, y, gAntTexture);
+
+		if (checkCollision(a->getCollider(), wall) || checkCollision(a->getCollider(), gDotCircleStatic->getCollider())) {
+			delete a;
+		}
+		else {
+			ants.push_back(a);
+			c++;
+		}
+	}
+	COUNT_ANTS += CREATE_THISMANY_ANTS;
+}
+
+void deleteAllAnts() {
+	for (auto p : ants) delete p;
+	ants.clear();
+	COUNT_ANTS = 0;
+}
 bool loadMedia()
 {
 	gPlayerTexture->loadFromFile("data/pics/agent.png");
@@ -158,21 +184,7 @@ bool loadMedia()
 
 	
 	//place COUNT_ANTS random ant dots
-	int c = 0;
-	while (c < COUNT_ANTS) {
-		int x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH ;
-		int y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
-
-		DotCircleAnt* a = new DotCircleAnt(x, y, gAntTexture);
-		
-		if (checkCollision(a->getCollider(), wall) || checkCollision(a->getCollider(), gDotCircleStatic->getCollider())) {
-			delete a;
-		}
-		else {
-			ants.push_back(a);
-			c++;
-		}
-	}
+	allocateAnts();
 		
 
 		//if the created ant collides with the wall, do not add it.
@@ -232,7 +244,7 @@ int main(int argc, char* args[])
 					antsText << "Ants alive: " << COUNT_ANTS;
 					gAntsText->loadFromRenderedText(antsText.str().c_str(), textColor);
 				}
-
+				redrawAnts = false;
 
 				//Handle events on queue
 				while (SDL_PollEvent(&e) != 0)
@@ -251,6 +263,13 @@ int main(int argc, char* args[])
 						case SDLK_ESCAPE:
 							quit = true;
 							break;
+						case SDLK_e:
+							deleteAllAnts();
+							redrawAnts = true;
+							break;
+						case SDLK_r:
+							allocateAnts();
+							redrawAnts = true;
 						default:
 							break;
 						}
@@ -260,7 +279,7 @@ int main(int argc, char* args[])
 
 
 				std::vector<DotCircleAnt*>::iterator iter = ants.begin();
-				redrawAnts = false;
+				
 				while (iter != ants.end()) {
 					DotCircleAnt* a = (*iter);
 					a->update();
@@ -268,6 +287,7 @@ int main(int argc, char* args[])
 
 					if (a->mDead) {
 						iter = ants.erase(iter);
+						delete a;
 						COUNT_ANTS--;
 						redrawAnts = true;
 					}
@@ -276,9 +296,6 @@ int main(int argc, char* args[])
 					}
 				}
 				
-
-				
-				//remove all dead ants
 				
 
 				// --- RENDERING  ---  
@@ -321,6 +338,8 @@ void close()
 	delete gShimmerTexture;
 	delete gPlayerTexture;
 	delete gAntTexture;
+
+	deleteAllAnts();
 
 	TTF_CloseFont(gSmallFont);
 
