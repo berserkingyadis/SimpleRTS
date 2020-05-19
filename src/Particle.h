@@ -6,11 +6,11 @@
 class Particle
 {
 public:
-	Particle(int x, int y);
+	Particle(float x, float y);
 	void render() const;
 	bool isDead();
 private:
-	int mPosX, mPosY;
+	float mPosX, mPosY;
 	int mFrame;
 	LTexture* mTexture;
 };

@@ -63,11 +63,10 @@ LTexture* gShimmerTexture;
 
 SDL_Color textColor = { 0xFF, 0xFF ,0xFF ,0xFF };
 SDL_Color wallColor = textColor;
-SDL_Color backGroundColor = { 50,50,50, 0xFF };
+SDL_Color backGroundColor = { 128,128,128, 0xFF };
 SDL_Color dragRectColor = { 192, 192, 192, 64 };
 //Event handler
 SDL_Event e;
-
 
 LTimer fpsTimer;
 LTimer capTimer;
@@ -362,7 +361,10 @@ int main(int argc, char* args[])
 
 void allocateAnts() {
 	int c = 0;
+	int attempts = 0;
+	int deletedAnts = 0;
 	while (c < CREATE_THISMANY_ANTS) {
+		attempts++;
 		int x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH;
 		int y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
 
@@ -370,12 +372,15 @@ void allocateAnts() {
 
 		if (checkCollision(a->getCollider(), wall) || checkCollision(a->getCollider(), gDotCircleStatic->getCollider())) {
 			delete a;
+			deletedAnts++;
 		}
 		else {
 			ants.push_back(a);
 			c++;
 		}
 	}
+	printf("tried to spawn %d ants in %d attempts while discarding %d ants", CREATE_THISMANY_ANTS, attempts, deletedAnts);
+
 	COUNT_ANTS += CREATE_THISMANY_ANTS;
 }
 

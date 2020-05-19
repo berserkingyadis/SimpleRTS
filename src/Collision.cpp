@@ -23,7 +23,7 @@ bool checkCollision(Circle& a, Circle& b) {
 
 	// Check if the distance between the centers is less than the sum of the radii
 	// (we used squared values here because square root operations are "expensive"
-	int radiiSquared = a.r + b.r;
+	float radiiSquared = a.r + b.r;
 	radiiSquared = radiiSquared * radiiSquared;
 
 	if (distanceSquared(a.x, a.y, b.x, b.y) < radiiSquared) return true;

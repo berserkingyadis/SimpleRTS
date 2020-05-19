@@ -25,8 +25,7 @@ public:
 	void render();
 private:
 	//positions
-	int mPosX, mPosY;
-	int mVelX, mVelY;
+	float mPosX, mPosY, mVelX, mVelY;
 
 	LTexture* mTexture;
 

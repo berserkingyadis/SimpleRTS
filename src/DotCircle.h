@@ -12,9 +12,9 @@ public:
 	//The dimensions of the dot
 	static const int DOT_WIDTH = 20;
 	static const int DOT_HEIGHT = 20;
-	static const int DOT_VEL = 1;
+	static const int DOT_VEL = 500;
 
-	DotCircle(int x, int y, LTexture* texture);
+	DotCircle(float x, float y, LTexture* texture);
 	
 	void handleEvent(SDL_Event& e);
 	void move(SDL_Rect& wall, Circle& circle);
@@ -23,8 +23,8 @@ public:
 	Circle& getCollider() { return mCollider; }
 
 protected:
-	int mPosX, mPosY;
-	int mVelX, mVelY;
+	float mPosX, mPosY;
+	float mVelX, mVelY;
 
 	Circle mCollider;
 	LTexture* mTexture;
@@ -37,7 +37,7 @@ protected:
 class DotCircleAnt : public DotCircle
 {
 public:
-	DotCircleAnt(int x, int y, LTexture* texture) : DotCircle(x, y, texture) {}
+	DotCircleAnt(float x, float y, LTexture* texture) : DotCircle(x, y, texture) {}
 	
 	void move(SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic);
 

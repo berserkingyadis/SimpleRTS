@@ -5,10 +5,6 @@
 #include "SDL_image.h"
 
 #include "LTexture.h"
-
-
-
-
 enum LButtonSprite
 {
 	BUTTON_SPRITE_MOUSE_OUT = 0,

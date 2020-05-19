@@ -3,11 +3,10 @@
 #include "Collision.h"
 
 
-DotCircle::DotCircle(int x, int y, LTexture* texture)
+DotCircle::DotCircle(float x, float y, LTexture* texture)
 {
 	mPosX = x;
 	mPosY = y;
-
 	mVelX = 0;
 	mVelY = 0;
 
