@@ -44,7 +44,8 @@ TTF_Font* gFont = NULL;
 TTF_Font* gSmallFont = NULL;
 
 
-LTexture* gFPSText = NULL;
+LTexture* gAverageFPSText = NULL;
+LTexture* gCurrentFPSText = NULL;
 LTexture* gAntsText = NULL;
 LTexture* gFrameTimeText = NULL;
 
@@ -71,7 +72,7 @@ SDL_Event e;
 LTimer fpsTimer;
 LTimer capTimer;
 
-std::stringstream fpsText;
+std::stringstream averageFpsText;
 std::stringstream antsText;
 std::stringstream frameTimeText;
 
@@ -126,7 +127,7 @@ bool init()
 		printf("Failed to load  font! SDL_ttf Error: %s\n", TTF_GetError());
 		success = false;
 	}
-	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 
 	if (gRenderer == NULL)
 	{
@@ -137,7 +138,8 @@ bool init()
 	{
 		SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
 
-		gFPSText = new LTexture(gRenderer, gFont);
+		gAverageFPSText = new LTexture(gRenderer, gFont);
+		gCurrentFPSText = new LTexture(gRenderer, gFont);
 		gAntsText = new LTexture(gRenderer, gFont);
 		gFrameTimeText = new LTexture(gRenderer, gSmallFont);
 		gPlayerTexture = new LTexture(gRenderer);
@@ -221,15 +223,20 @@ int main(int argc, char* args[])
 
 				//fps calculation and display
 				float avgFPS = countedFrames++ / (fpsTimer.getTicks() / 1000.f);
+				double frameTime = capTimer.getTicks() / 1000.f;
+				
 				if (avgFPS > 20000)avgFPS = 0;
-				fpsText.str("");
-				fpsText << "Average FPS: " << avgFPS;
-				gFPSText->loadFromRenderedText(fpsText.str().c_str(), textColor);
+				averageFpsText.str("");
+				averageFpsText << "Average FPS: " << avgFPS;
+				gAverageFPSText->loadFromRenderedText(averageFpsText.str().c_str(), textColor);
+
+				averageFpsText.str("");
+				averageFpsText << "Current FPS: " << (unsigned int)(1.f/frameTime);
+				gCurrentFPSText->loadFromRenderedText(averageFpsText.str().c_str(), textColor);
 
 				//frametime display
-				uint32_t frameTime = capTimer.getTicks();
 				frameTimeText.str("");
-				frameTimeText << "last frametime: " << frameTime << " ms";
+				frameTimeText << "last frametime: " << frameTime << " s";
 				gFrameTimeText->loadFromRenderedText(frameTimeText.str().c_str(), textColor);
 				capTimer.start();
 
@@ -300,7 +307,7 @@ int main(int argc, char* args[])
 				while (iter != ants.end()) {
 					DotCircleAnt* a = (*iter);
 					a->update();
-					a->move(wall, gDotCircleStatic->getCollider(), gDotCirclePlayer->getCollider());
+					a->move(frameTime, wall, gDotCircleStatic->getCollider(), gDotCirclePlayer->getCollider());
 
 					if (killSwitch && checkCollision(a->getCollider(), dragRect)) a->mDead = true;
 					if (a->mDead) {
@@ -331,7 +338,7 @@ int main(int argc, char* args[])
 				SDL_RenderFillRect(gRenderer, &wall);
 				SDL_SetRenderDrawColor(gRenderer, backGroundColor);
 
-				gDotCirclePlayer->move(wall, gDotCircleStatic->getCollider());
+				gDotCirclePlayer->move(frameTime, wall, gDotCircleStatic->getCollider());
 				gDotCirclePlayer->render();
 				gDotCircleStatic->render();
 
@@ -344,8 +351,9 @@ int main(int argc, char* args[])
 					SDL_SetRenderDrawColor(gRenderer, backGroundColor);
 				}
 								//draw FPS over everything
-				gFPSText->render(10, 10);
-				gAntsText->render(10, 40);
+				gAverageFPSText->render(10, 10);
+				gCurrentFPSText->render(10, 40);
+				gAntsText->render(10, 70);
 				gFrameTimeText->render(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 10);
 				SDL_RenderPresent(gRenderer);
 			}
@@ -365,8 +373,8 @@ void allocateAnts() {
 	int deletedAnts = 0;
 	while (c < CREATE_THISMANY_ANTS) {
 		attempts++;
-		int x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH;
-		int y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
+		float x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH;
+		float y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
 
 		DotCircleAnt* a = new DotCircleAnt(x, y, gAntTexture);
 
@@ -392,7 +400,8 @@ void deleteAllAnts() {
 
 void close()
 {
-	delete gFPSText;
+	delete gAverageFPSText;
+	delete gCurrentFPSText;
 	delete gAntsText;
 	delete gRedTexture;
 	delete gGreenTexture;

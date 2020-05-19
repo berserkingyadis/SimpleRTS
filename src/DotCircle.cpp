@@ -37,9 +37,9 @@ void DotCircle::handleEvent(SDL_Event& e)
 	}
 }
 
-void DotCircle::move(SDL_Rect& wall, Circle& circle)
+void DotCircle::move(float frameTime, SDL_Rect& wall, Circle& circle)
 {
-	mPosX += mVelX;
+	mPosX += mVelX * frameTime;
 	shiftColliders();
 
 	/*
@@ -51,15 +51,14 @@ void DotCircle::move(SDL_Rect& wall, Circle& circle)
 
 	// left and right
 	if (checkCollisions(wall, circle)) {
-		mPosX -= mVelX;
-		shiftColliders();
+		mPosX -= mVelX * frameTime;
 	}
 
-	mPosY += mVelY;
+	mPosY += mVelY * frameTime;
 	shiftColliders();
 	//up and down
 	if (checkCollisions(wall, circle)) {
-		mPosY -= mVelY;
+		mPosY -= mVelY * frameTime;
 		shiftColliders();
 	}
 }
@@ -84,9 +83,9 @@ bool DotCircle::checkCollisions(SDL_Rect& wall, Circle& circle)
 	return false;
 }
 
-void DotCircleAnt::move(SDL_Rect& wall, Circle& circleStatic, Circle& circlePlayer)
+void DotCircleAnt::move(float frameTime, SDL_Rect& wall, Circle& circleStatic, Circle& circlePlayer)
 {
-	mPosX += mVelX;
+	mPosX += mVelX * frameTime;
 	shiftColliders();
 
 	/*
@@ -98,15 +97,15 @@ void DotCircleAnt::move(SDL_Rect& wall, Circle& circleStatic, Circle& circlePlay
 
 	// left and right
 	if (checkCollisions(wall, circlePlayer, circleStatic)) {
-		mPosX -= mVelX;
+		mPosX -= mVelX * frameTime;
 		shiftColliders();
 	}
 
-	mPosY += mVelY;
+	mPosY += mVelY * frameTime;
 	shiftColliders();
 	//up and down
 	if (checkCollisions(wall, circlePlayer, circleStatic)) {
-		mPosY -= mVelY;
+		mPosY -= mVelY * frameTime;
 		shiftColliders();
 	}
 }
@@ -118,6 +117,7 @@ void DotCircleAnt::update()
 	mVelX = (i < 50) ? DOT_VEL : -DOT_VEL;
 	mVelY = (j < 50) ? DOT_VEL : -DOT_VEL;
 }
+
 
 bool DotCircleAnt::checkCollisions(SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic)
 {
