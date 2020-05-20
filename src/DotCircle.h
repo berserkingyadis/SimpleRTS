@@ -4,6 +4,7 @@
 #include "SDL.h"
 
 #include "LGlobals.h"
+#include "math.h"
 #include "LTexture.h"
 
 class DotCircle {

@@ -1,5 +1,6 @@
 #include "Collision.h"
 
+#include "math.h"
 bool checkCollision(SDL_Rect& a, SDL_Rect& b) {
 	int leftA = a.x;
 	int rightA = a.x + a.w;
@@ -71,8 +72,3 @@ bool checkCollision(Circle& a, SDL_Rect& b) {
 	return false;
 }
 
-float distanceSquared(float x1, float y1, float x2, float y2) {
-	float deltaX = x2 - x1;
-	float deltaY = y2 - y1;
-	return deltaX * deltaX + deltaY * deltaY;
-}
