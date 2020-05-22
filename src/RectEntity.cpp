@@ -1,8 +1,7 @@
-#include "DotRect.h"
-
+#include "RectEntity.h"
 #include "Collision.h"
 
-DotRect::DotRect(LTexture* texture)
+RectEntity::RectEntity(LTexture* texture)
 {
 	mPosX = 0;
 	mPosY = 0;
@@ -16,7 +15,7 @@ DotRect::DotRect(LTexture* texture)
 	mTexture = texture;
 }
 
-void DotRect::handleEvent(SDL_Event& e)
+void RectEntity::handleEvent(SDL_Event& e)
 {
 	if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
 		switch (e.key.keysym.sym) {
@@ -37,7 +36,7 @@ void DotRect::handleEvent(SDL_Event& e)
 	}
 }
 
-void DotRect::move(SDL_Rect& wall)
+void RectEntity::move(SDL_Rect& wall)
 {
 	mPosX += mVelX;
 	mCollider.x = mPosX;
@@ -55,7 +54,7 @@ void DotRect::move(SDL_Rect& wall)
 	}
 }
 
-void DotRect::render()
+void RectEntity::render()
 {
 	mTexture->render(mPosX, mPosY);
 }

@@ -72,3 +72,12 @@ bool checkCollision(Circle& a, SDL_Rect& b) {
 	return false;
 }
 
+bool checkCollision(Ant* dot, const std::vector<Ant*>& all)
+{
+	for (auto a : all) {
+		if (a == dot)continue;
+		if (checkCollision(dot->getCollider(), a->getCollider()))return true;
+	}
+	return false;
+}
+

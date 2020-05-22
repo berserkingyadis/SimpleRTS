@@ -6,7 +6,7 @@
 #include "LTexture.h"
 #include "LGlobals.h"
 
-class DotRect
+class RectEntity
 {
 public: 
 
@@ -17,7 +17,7 @@ public:
 	// maximum axis velocity
 	static const int DOT_VEL = 10;
 
-	DotRect(LTexture* texture);
+	RectEntity(LTexture* texture);
 
 	void handleEvent(SDL_Event& e);
 

@@ -6,8 +6,6 @@
 #include <iostream>
 class Vector2;
 
-
-
 class Vector2 {
 public:
 

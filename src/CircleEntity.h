@@ -7,7 +7,7 @@
 #include "math.h"
 #include "LTexture.h"
 
-class DotCircle {
+class CircleEntity {
 public:
 
 	//The dimensions of the dot
@@ -15,7 +15,7 @@ public:
 	static const int DOT_HEIGHT = 20;
 	static const int DOT_VEL = 70;
 
-	DotCircle(float x, float y, LTexture* texture);
+	CircleEntity(float x, float y, LTexture* texture);
 	
 	void handleEvent(SDL_Event& e);
 	void move(float frameTime, SDL_Rect& wall, Circle& circle);
@@ -35,20 +35,5 @@ protected:
 };
 
 
-class DotCircleAnt : public DotCircle
-{
-public:
-	DotCircleAnt(float x, float y, LTexture* texture) : DotCircle(x, y, texture) {}
-	
-	void move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic);
-
-	bool mDead = false;
-	void update();
-
-	static const int DOT_VEL = 70;
-
-private: 
-	bool checkCollisions(SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic);
-};
 
 #endif // !DOTRECT_H

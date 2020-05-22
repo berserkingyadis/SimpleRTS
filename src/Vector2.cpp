@@ -2,6 +2,7 @@
 
 #include "LGlobals.h"
 #include "math.h"
+
 #include <cmath>
 
 float Vector2::distanceTo(const Vector2& other)

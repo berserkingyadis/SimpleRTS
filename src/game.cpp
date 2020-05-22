@@ -16,9 +16,10 @@
 #include "LTimer.h"
 #include "LGlobals.h"
 
-#include "DotRect.h"
-#include "DotCircle.h"
+#include "RectEntity.h"
+#include "CircleEntity.h"
 #include "Collision.h"
+#include "Ant.h"
 
 //Starts up SDL and creates window
 bool init();
@@ -51,8 +52,8 @@ LTexture* gFrameTimeText = NULL;
 LTexture* gPlayerTexture;
 LTexture* gAntTexture;
 
-DotCircle* gDotCirclePlayer;
-DotCircle* gDotCircleStatic;
+CircleEntity* gDotCirclePlayer;
+CircleEntity* gDotCircleStatic;
 SDL_Rect wall = { 230,100,30,200 };
 
 //Particles
@@ -75,10 +76,10 @@ std::stringstream averageFpsText;
 std::stringstream antsText;
 std::stringstream frameTimeText;
 
-const int CREATE_THISMANY_ANTS =3000;
+const int CREATE_THISMANY_ANTS =200;
 int COUNT_ANTS = 0;
 
-std::vector<DotCircleAnt*> ants;
+std::vector<Ant*> ants;
 
 bool init()
 {
@@ -167,8 +168,8 @@ bool loadMedia()
 	gBlueTexture->setAlpha(192);
 	gShimmerTexture->setAlpha(192);
 
-	gDotCirclePlayer = new DotCircle(100, 100, gPlayerTexture);
-	gDotCircleStatic = new DotCircle(200, 200, gPlayerTexture);
+	gDotCirclePlayer = new CircleEntity(100, 100, gPlayerTexture);
+	gDotCircleStatic = new CircleEntity(200, 200, gPlayerTexture);
 		
 	antsText.str("");
 	antsText << "Ants alive: " << COUNT_ANTS;
@@ -302,12 +303,12 @@ int start()
 				}
 
 
-				std::vector<DotCircleAnt*>::iterator iter = ants.begin();
+				std::vector<Ant*>::iterator iter = ants.begin();
 				
 				while (iter != ants.end()) {
-					DotCircleAnt* a = (*iter);
+					Ant* a = (*iter);
 					a->update();
-					a->move(frameTime, wall, gDotCircleStatic->getCollider(), gDotCirclePlayer->getCollider());
+					a->move(frameTime, wall, gDotCircleStatic->getCollider(), gDotCirclePlayer->getCollider(), ants);
 
 					if (killSwitch && checkCollision(a->getCollider(), dragRect)) a->mDead = true;
 					if (a->mDead) {
@@ -340,10 +341,9 @@ int start()
 
 				gDotCirclePlayer->move(frameTime, wall, gDotCircleStatic->getCollider());
 				gDotCirclePlayer->render();
-				gDotCircleStatic->render();
 
 
-				for (DotCircleAnt* a : ants)a->render();
+				for (Ant* a : ants)a->render();
 
 				if (dragging) {
 					SDL_SetRenderDrawColor(gRenderer, dragRectColor);
@@ -369,25 +369,20 @@ int start()
 
 void allocateAnts() {
 	int c = 0;
-	int attempts = 0;
-	int deletedAnts = 0;
 	while (c < CREATE_THISMANY_ANTS) {
-		attempts++;
-		float x = rand() % (SCREEN_WIDTH - DotCircle::DOT_WIDTH) + DotCircle::DOT_WIDTH;
-		float y = rand() % (SCREEN_HEIGHT - DotCircle::DOT_HEIGHT) + DotCircle::DOT_HEIGHT;
+		float x = rand() % (SCREEN_WIDTH - CircleEntity::DOT_WIDTH) + CircleEntity::DOT_WIDTH;
+		float y = rand() % (SCREEN_HEIGHT - CircleEntity::DOT_HEIGHT) + CircleEntity::DOT_HEIGHT;
 
-		DotCircleAnt* a = new DotCircleAnt(x, y, gAntTexture);
+		Ant* ant = new Ant(x, y, gAntTexture);
 
-		if (checkCollision(a->getCollider(), wall) || checkCollision(a->getCollider(), gDotCircleStatic->getCollider())) {
-			delete a;
-			deletedAnts++;
+		if (checkCollision(ant->getCollider(), wall) || checkCollision(ant->getCollider(), gDotCircleStatic->getCollider()) || checkCollision(ant, ants)) {
+			delete ant;
 		}
 		else {
-			ants.push_back(a);
+			ants.push_back(ant);
 			c++;
 		}
 	}
-	printf("tried to spawn %d ants in %d attempts while discarding %d ants", CREATE_THISMANY_ANTS, attempts, deletedAnts);
 
 	COUNT_ANTS += CREATE_THISMANY_ANTS;
 }
