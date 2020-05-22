@@ -150,10 +150,6 @@ bool loadMedia()
 	gPlayerTexture->loadFromFile("data/pics/agent.png");
 	gAntTexture->loadFromFile("data/pics/ant.png");
 
-	gRedTexture->setAlpha(192);
-	gGreenTexture->setAlpha(192);
-	gBlueTexture->setAlpha(192);
-	gShimmerTexture->setAlpha(192);
 
 	gDotCirclePlayer = new CircleEntity(100, 100, gPlayerTexture);
 		
