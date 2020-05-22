@@ -53,14 +53,9 @@ LTexture* gPlayerTexture;
 LTexture* gAntTexture;
 
 CircleEntity* gDotCirclePlayer;
-CircleEntity* gDotCircleStatic;
 SDL_Rect wall = { 230,100,30,200 };
 
 //Particles
-LTexture* gRedTexture;
-LTexture* gGreenTexture;
-LTexture* gBlueTexture;
-LTexture* gShimmerTexture;
 
 SDL_Color textColor = { 0xFF, 0xFF ,0xFF ,0xFF };
 SDL_Color wallColor = textColor;
@@ -144,10 +139,6 @@ bool init()
 		gFrameTimeText = new LTexture(gRenderer, gSmallFont);
 		gPlayerTexture = new LTexture(gRenderer);
 		gAntTexture = new LTexture(gRenderer);
-		gRedTexture = new LTexture(gRenderer);
-		gGreenTexture = new LTexture(gRenderer);
-		gBlueTexture = new LTexture(gRenderer);
-		gShimmerTexture = new LTexture(gRenderer);
 
 	}
 	
@@ -158,10 +149,6 @@ bool loadMedia()
 {
 	gPlayerTexture->loadFromFile("data/pics/agent.png");
 	gAntTexture->loadFromFile("data/pics/ant.png");
-	gRedTexture->loadFromFile("data/pics/particles/red.png");
-	gGreenTexture->loadFromFile("data/pics/particles/green.png");
-	gBlueTexture->loadFromFile("data/pics/particles/blue.png");
-	gShimmerTexture->loadFromFile("data/pics/particles/shimmer.png");
 
 	gRedTexture->setAlpha(192);
 	gGreenTexture->setAlpha(192);
@@ -169,7 +156,6 @@ bool loadMedia()
 	gShimmerTexture->setAlpha(192);
 
 	gDotCirclePlayer = new CircleEntity(100, 100, gPlayerTexture);
-	gDotCircleStatic = new CircleEntity(200, 200, gPlayerTexture);
 		
 	antsText.str("");
 	antsText << "Ants alive: " << COUNT_ANTS;
@@ -308,7 +294,7 @@ int start()
 				while (iter != ants.end()) {
 					Ant* a = (*iter);
 					a->update();
-					a->move(frameTime, wall, gDotCircleStatic->getCollider(), gDotCirclePlayer->getCollider(), ants);
+					a->move(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
 
 					if (killSwitch && checkCollision(a->getCollider(), dragRect)) a->mDead = true;
 					if (a->mDead) {
@@ -339,7 +325,7 @@ int start()
 				SDL_RenderFillRect(gRenderer, &wall);
 				SDL_SetRenderDrawColor(gRenderer, backGroundColor);
 
-				gDotCirclePlayer->move(frameTime, wall, gDotCircleStatic->getCollider());
+				gDotCirclePlayer->move(frameTime, wall);
 				gDotCirclePlayer->render();
 
 
@@ -375,7 +361,7 @@ void allocateAnts() {
 
 		Ant* ant = new Ant(x, y, gAntTexture);
 
-		if (checkCollision(ant->getCollider(), wall) || checkCollision(ant->getCollider(), gDotCircleStatic->getCollider()) || checkCollision(ant, ants)) {
+		if (checkCollision(ant->getCollider(), wall) || checkCollision(ant, ants)) {
 			delete ant;
 		}
 		else {
@@ -398,12 +384,10 @@ void close()
 	delete gAverageFPSText;
 	delete gCurrentFPSText;
 	delete gAntsText;
-	delete gRedTexture;
-	delete gGreenTexture;
-	delete gBlueTexture;
-	delete gShimmerTexture;
 	delete gPlayerTexture;
 	delete gAntTexture;
+
+	delete gDotCirclePlayer;
 
 	deleteAllAnts();
 

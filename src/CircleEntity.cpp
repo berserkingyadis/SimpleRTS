@@ -37,7 +37,7 @@ void CircleEntity::handleEvent(SDL_Event& e)
 	}
 }
 
-void CircleEntity::move(float frameTime, SDL_Rect& wall, Circle& circle)
+void CircleEntity::move(float frameTime, SDL_Rect& wall)
 {
 	mPosX += mVelX * frameTime;
 	shiftColliders();
@@ -50,14 +50,14 @@ void CircleEntity::move(float frameTime, SDL_Rect& wall, Circle& circle)
 	*/
 
 	// left and right
-	if (checkCollisions(wall, circle)){
+	if (checkCollisions(wall)){
 		mPosX -= mVelX * frameTime;
 	}
 
 	mPosY += mVelY * frameTime;
 	shiftColliders();
 	//up and down
-	if (checkCollisions(wall, circle)) {
+	if (checkCollisions(wall)) {
 		mPosY -= mVelY * frameTime;
 		shiftColliders();
 	}
@@ -74,11 +74,11 @@ void CircleEntity::shiftColliders()
 	mCollider.y = mPosY;
 }
 
-bool CircleEntity::checkCollisions(SDL_Rect& wall, Circle& circle)
+bool CircleEntity::checkCollisions(SDL_Rect& wall)
 {
 	if(mPosX - mCollider.r < 0 || mPosX + mCollider.r > SCREEN_WIDTH
 		|| mPosY - mCollider.r < 0 || mPosY + mCollider.r > SCREEN_HEIGHT
-		|| checkCollision(mCollider, wall) || checkCollision(mCollider, circle))
+		|| checkCollision(mCollider, wall))
 		return true;
 	return false;
 }

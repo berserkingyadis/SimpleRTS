@@ -1,4 +1,8 @@
-void Ant::move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic, const std::vector<Ant*>& ants)
+#include "Ant.h"
+
+#include "Collision.h"
+
+void Ant::move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants)
 {
 	mPosX += mVelX * frameTime;
 	shiftColliders();
@@ -11,7 +15,7 @@ void Ant::move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, Circle& ci
 	*/
 
 	// left and right
-	if (checkCollisions(wall, circlePlayer, circleStatic)) {
+	if (checkCollisions(wall, circlePlayer, ants)) {
 		mPosX -= mVelX * frameTime;
 		shiftColliders();
 	}
@@ -19,7 +23,7 @@ void Ant::move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, Circle& ci
 	mPosY += mVelY * frameTime;
 	shiftColliders();
 	//up and down
-	if (checkCollisions(wall, circlePlayer, circleStatic)) {
+	if (checkCollisions(wall, circlePlayer, ants)) {
 		mPosY -= mVelY * frameTime;
 		shiftColliders();
 	}
@@ -34,10 +38,9 @@ void Ant::update()
 }
 
 
-bool Ant::checkCollisions(SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic)
+bool Ant::checkCollisions(SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants)
 {
-	if (CircleEntity::checkCollisions(wall, circleStatic) || checkCollision(mCollider, circlePlayer)) {
-		mDead = true;
+	if (CircleEntity::checkCollisions(wall) || checkCollision(mCollider, circlePlayer) || checkCollision(this, ants) ) {
 		return true;
 	}
 	return false;

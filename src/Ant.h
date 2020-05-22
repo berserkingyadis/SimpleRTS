@@ -10,7 +10,7 @@ class Ant : public CircleEntity
 public:
 	Ant(float x, float y, LTexture* texture) : CircleEntity(x, y, texture) {}
 
-	void move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic, const std::vector<Ant*>& ants);
+	void move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants);
 
 	bool mDead = false;
 	void update();
@@ -18,7 +18,7 @@ public:
 	static const int DOT_VEL = 70;
 
 private:
-	bool checkCollisions(SDL_Rect& wall, Circle& circlePlayer, Circle& circleStatic);
+	bool checkCollisions(SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants);
 };
 
 
