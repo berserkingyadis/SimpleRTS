@@ -31,7 +31,7 @@ Vector2 Vector2::normalize()
 
 Vector2 Vector2::operator+(const Vector2& other)
 {
-	return Vector2(mX + other.mY, mY + other.mY);
+	return Vector2(mX + other.mX, mY + other.mY);
 }
 
 Vector2 Vector2::operator-(const Vector2& other)

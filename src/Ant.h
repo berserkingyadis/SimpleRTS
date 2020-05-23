@@ -17,7 +17,7 @@ public:
 	void updateRandomly();
 
 	void setDestination(Vector2& destination);
-	void proceedToDestination(float frameTime);
+	void proceedToDestination(float frameTime, SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants);
 
 	static const int DOT_VEL = 70;
 

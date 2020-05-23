@@ -344,7 +344,7 @@ int start()
 				
 				// UPDATE LOGIC
 				for (auto a : ants) {
-					a->proceedToDestination(frameTime);
+					a->proceedToDestination(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
 				}
 
 				// --- RENDERING  ---  

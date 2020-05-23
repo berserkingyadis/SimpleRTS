@@ -45,9 +45,10 @@ void Ant::setDestination(Vector2& destination)
 	mDestReached = false;
 }
 
-void Ant::proceedToDestination(float frameTime)
+void Ant::proceedToDestination(float frameTime, SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants)
 {
 	if (mDestReached == false) {
+		float oldX = mPosX, oldY = mPosY;
 		//how far away is the destination
 		Vector2 direction = mDestinaton - Vector2(mPosX, mPosY);
 		float destDistance = direction.length();
@@ -60,8 +61,17 @@ void Ant::proceedToDestination(float frameTime)
 
 		Vector2 newPos = Vector2(mPosX, mPosY) + (direction.normalize() * howFar);
 
+		//check for collisions
+
 		mPosX = newPos.mX;
 		mPosY = newPos.mY;
+		shiftColliders();
+		if (checkCollisions(wall, circlePlayer, ants)) {
+			mPosX = oldX;
+			mPosY = oldY;
+			shiftColliders();
+		}
+			
 	}
 	
 }
