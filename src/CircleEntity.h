@@ -1,7 +1,7 @@
 #ifndef DOTCIRCLE_H
 #define DOTCIRCLE_H
 
-#include "SDL.h"
+
 
 #include "LGlobals.h"
 #include "math.h"
@@ -23,7 +23,7 @@ public:
 
 	Circle& getCollider() { return mCollider; }
 
-	bool mSelected;
+	
 
 protected:
 	float mPosX, mPosY;

@@ -19,6 +19,7 @@ public:
 	LTexture( SDL_Renderer* renderer = NULL, TTF_Font* font = NULL);
 	~LTexture();
 
+visu	SDL_Renderer* getRenderer() { return mRenderer; }
 	bool loadFromFile(std::string path);
 	bool loadFromRenderedText(std::string textureText, SDL_Color textColor);
 

@@ -1,7 +1,7 @@
 #ifndef LGLOBALS_H
 #define LGLOBALS_H
 
-#include "SDL.h"
+
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;

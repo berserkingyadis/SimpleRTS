@@ -1,6 +1,7 @@
 #include "Ant.h"
-
 #include "Collision.h"
+
+
 
 void Ant::move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants)
 {
@@ -38,7 +39,17 @@ void Ant::updateRandomly()
 }
 
 
+void Ant::render() {
 
+	if (!mDestReached) {
+		SDL_SetRenderDrawColor(mTexture->getRenderer(), 240, 20, 30, SDL_ALPHA_OPAQUE);
+		SDL_RenderDrawLine(mTexture->getRenderer(), mPosX, mPosY, mDestinaton.mX, mDestinaton.mY);
+	}
+	CircleEntity::render();
+	if (mSelected)mSelTexture->render(mPosX - mCollider.r, mPosY - mCollider.r,NULL,mDestinaton.angle());
+
+	
+}
 void Ant::setDestination(Vector2& destination)
 {
 	mDestinaton = destination;

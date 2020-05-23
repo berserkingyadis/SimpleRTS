@@ -14,6 +14,7 @@ public:
 	void move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants);
 
 	bool mDead = false;
+	bool mSelected = false;
 	void updateRandomly();
 
 	void setDestination(Vector2& destination);
@@ -21,6 +22,9 @@ public:
 
 	static const int DOT_VEL = 70;
 
+	
+
+	void render();
 private:
 	bool mDestReached = true;
 	Vector2 mDestinaton;

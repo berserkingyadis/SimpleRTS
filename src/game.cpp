@@ -349,12 +349,12 @@ int start()
 
 				// --- RENDERING  ---  
 				
-				
+				SDL_SetRenderDrawColor(gRenderer, backGroundColor);
 				SDL_RenderClear(gRenderer);
 
 				SDL_SetRenderDrawColor(gRenderer, wallColor);
 				SDL_RenderFillRect(gRenderer, &wall);
-				SDL_SetRenderDrawColor(gRenderer, backGroundColor);
+				
 
 				gDotCirclePlayer->move(frameTime, wall);
 				gDotCirclePlayer->render();
