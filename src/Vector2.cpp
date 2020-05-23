@@ -19,7 +19,7 @@ float Vector2::length()
 
 float Vector2::angle()
 {
-	return std::atan2f(mX,-mY) * 180 / M_PI;
+	return std::atan2(mX,-mY) * 180.f / M_PI;
 }
 
 Vector2 Vector2::normalize()

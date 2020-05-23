@@ -51,6 +51,7 @@ LTexture* gFrameTimeText = NULL;
 
 LTexture* gPlayerTexture;
 LTexture* gAntTexture;
+LTexture* gSelectedTexture;
 
 CircleEntity* gDotCirclePlayer;
 SDL_Rect wall = { 230,100,30,200 };
@@ -71,7 +72,7 @@ std::stringstream averageFpsText;
 std::stringstream antsText;
 std::stringstream frameTimeText;
 
-const int CREATE_THISMANY_ANTS =200;
+const int CREATE_THISMANY_ANTS = 100;
 int COUNT_ANTS = 0;
 
 std::vector<Ant*> ants;
@@ -139,6 +140,7 @@ bool init()
 		gFrameTimeText = new LTexture(gRenderer, gSmallFont);
 		gPlayerTexture = new LTexture(gRenderer);
 		gAntTexture = new LTexture(gRenderer);
+		gSelectedTexture = new LTexture(gRenderer);
 
 	}
 	
@@ -149,9 +151,10 @@ bool loadMedia()
 {
 	gPlayerTexture->loadFromFile("data/pics/agent.png");
 	gAntTexture->loadFromFile("data/pics/ant.png");
+	gSelectedTexture->loadFromFile("data/pics/selected.png");
 
 
-	gDotCirclePlayer = new CircleEntity(100, 100, gPlayerTexture);
+	gDotCirclePlayer = new CircleEntity(100, 100, gPlayerTexture, gSelectedTexture);
 		
 	antsText.str("");
 	antsText << "Ants alive: " << COUNT_ANTS;
@@ -183,14 +186,18 @@ int start()
 			//Main loop flag
 			bool quit = false;
 
+			//left mouse button flags
 			bool dragging = false;
-			bool killSwitch = false;
+			bool selectionDone = false;
 			int mouseDragbeginX = 0;
 			int mouseDragbeginY = 0;
 			int mouseDragEndX = 0;
 			int mouseDragEndY = 0;
 			SDL_Rect dragRect;
 			
+			//right mouse button 
+			bool directionGiven = false;
+			int directonX = 0, directionY = 0;
 
 			bool redrawAnts = false;
 			int countedFrames = 0;
@@ -258,13 +265,25 @@ int start()
 							break;
 						}
 					}
-					else if (e.type == SDL_MOUSEBUTTONDOWN) {
+
+					//Left mouse button for selection
+					else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
 						if (!dragging) {
 							SDL_GetMouseState(&mouseDragbeginX, &mouseDragbeginY);
 							SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
 							dragging = true;
 						}
 					}
+					else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+						dragging = false;
+						selectionDone = true;
+
+					}
+					else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT) {
+						directionGiven = true;
+						SDL_GetMouseState(&directonX, &directionY);
+					}
+					// Mouse motion in general
 					else if (e.type == SDL_MOUSEMOTION) {
 						if (dragging) {
 							SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
@@ -276,23 +295,20 @@ int start()
 							dragRect.h = ABS(h);
 						}
 					}
-					else if (e.type == SDL_MOUSEBUTTONUP) {
-						dragging = false;
-						killSwitch = true;
-
-					}
 					gDotCirclePlayer->handleEvent(e);
 				}
 
+				//SELECTION LOGIC
+				if (selectionDone) for (auto a : ants)a->mSelected = false;
 
 				std::vector<Ant*>::iterator iter = ants.begin();
-				
+
 				while (iter != ants.end()) {
 					Ant* a = (*iter);
-					a->update();
-					a->move(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
+					//a->updateRandomly();
+					//a->move(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
 
-					if (killSwitch && checkCollision(a->getCollider(), dragRect)) a->mDead = true;
+					if (selectionDone && checkCollision(a->getCollider(), dragRect)) a->mSelected = true;
 					if (a->mDead) {
 						iter = ants.erase(iter);
 						delete a;
@@ -303,13 +319,30 @@ int start()
 						++iter;
 					}
 				}
-				
-				if (killSwitch) {
-					killSwitch = false;
+
+				if (selectionDone) {
+					selectionDone = false;
 					dragRect.x = 0;
 					dragRect.y = 0;
 					dragRect.h = 0;
 					dragRect.w = 0;
+				}
+
+				//MOVE ORDER LOGIC
+				if (directionGiven) {
+					for (auto a : ants) {
+						if (a->mSelected) {
+							a->setDestination(Vector2(directonX, directionY));
+						}
+					}
+					directionGiven = false;
+				}
+				
+				
+				// UPDATE LOGIC
+
+				for (auto a : ants) {
+					a->proceedToDestination(frameTime);
 				}
 
 				// --- RENDERING  ---  
@@ -355,7 +388,7 @@ void allocateAnts() {
 		float x = rand() % (SCREEN_WIDTH - CircleEntity::DOT_WIDTH) + CircleEntity::DOT_WIDTH;
 		float y = rand() % (SCREEN_HEIGHT - CircleEntity::DOT_HEIGHT) + CircleEntity::DOT_HEIGHT;
 
-		Ant* ant = new Ant(x, y, gAntTexture);
+		Ant* ant = new Ant(x, y, gAntTexture,gSelectedTexture);
 
 		if (checkCollision(ant->getCollider(), wall) || checkCollision(ant, ants)) {
 			delete ant;
@@ -380,6 +413,7 @@ void close()
 	delete gAverageFPSText;
 	delete gCurrentFPSText;
 	delete gAntsText;
+	delete gSelectedTexture;
 	delete gPlayerTexture;
 	delete gAntTexture;
 

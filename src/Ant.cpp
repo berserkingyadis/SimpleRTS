@@ -29,12 +29,41 @@ void Ant::move(float frameTime, SDL_Rect& wall, Circle& circlePlayer, const std:
 	}
 }
 
-void Ant::update()
+void Ant::updateRandomly()
 {
 	int i = rand() % 100;
 	int j = rand() % 100;
 	mVelX = (i < 50) ? DOT_VEL : -DOT_VEL;
 	mVelY = (j < 50) ? DOT_VEL : -DOT_VEL;
+}
+
+
+
+void Ant::setDestination(Vector2& destination)
+{
+	mDestinaton = destination;
+	mDestReached = false;
+}
+
+void Ant::proceedToDestination(float frameTime)
+{
+	if (mDestReached == false) {
+		//how far away is the destination
+		Vector2 direction = mDestinaton - Vector2(mPosX, mPosY);
+		float destDistance = direction.length();
+		if (destDistance == 0) {
+			mDestReached = true;
+			return;
+		}
+		//how far will we travel
+		float howFar = frameTime * DOT_VEL;
+
+		Vector2 newPos = Vector2(mPosX, mPosY) + (direction.normalize() * howFar);
+
+		mPosX = newPos.mX;
+		mPosY = newPos.mY;
+	}
+	
 }
 
 

@@ -3,14 +3,16 @@
 #include "Collision.h"
 
 
-CircleEntity::CircleEntity(float x, float y, LTexture* texture)
+CircleEntity::CircleEntity(float x, float y, LTexture* texture, LTexture* selTexture)
 {
 	mPosX = x;
 	mPosY = y;
 	mVelX = 0;
 	mVelY = 0;
+	mSelected = false;
 
 	mTexture = texture;
+	mSelTexture = selTexture;
 
 	mCollider.r = DOT_WIDTH / 2;
 	shiftColliders();
@@ -66,6 +68,7 @@ void CircleEntity::move(float frameTime, SDL_Rect& wall)
 void CircleEntity::render()
 {
 	mTexture->render(mPosX - mCollider.r, mPosY - mCollider.r);
+	if (mSelected)mSelTexture->render(mPosX - mCollider.r, mPosY - mCollider.r);
 }
 
 void CircleEntity::shiftColliders()
