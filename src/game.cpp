@@ -279,10 +279,13 @@ int start()
 						selectionDone = true;
 
 					}
+
+					//Right mouse button for move orders
 					else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT) {
 						directionGiven = true;
 						SDL_GetMouseState(&directonX, &directionY);
 					}
+
 					// Mouse motion in general
 					else if (e.type == SDL_MOUSEMOTION) {
 						if (dragging) {
@@ -340,7 +343,6 @@ int start()
 				
 				
 				// UPDATE LOGIC
-
 				for (auto a : ants) {
 					a->proceedToDestination(frameTime);
 				}
@@ -398,7 +400,6 @@ void allocateAnts() {
 			c++;
 		}
 	}
-
 	COUNT_ANTS += CREATE_THISMANY_ANTS;
 }
 
