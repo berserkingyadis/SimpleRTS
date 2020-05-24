@@ -72,7 +72,7 @@ std::stringstream averageFpsText;
 std::stringstream antsText;
 std::stringstream frameTimeText;
 
-const int CREATE_THISMANY_ANTS = 100;
+const int CREATE_THISMANY_ANTS = 500;
 int COUNT_ANTS = 0;
 
 std::vector<Ant*> ants;
@@ -392,7 +392,7 @@ void allocateAnts() {
 
 		Ant* ant = new Ant(x, y, gAntTexture,gSelectedTexture);
 
-		if (checkCollision(ant->getCollider(), wall) || checkCollision(ant, ants)) {
+		if (checkCollision(ant->getCollider(), wall)) {
 			delete ant;
 		}
 		else {
