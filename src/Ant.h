@@ -28,8 +28,9 @@ public:
 private:
 	bool mDestReached = true;
 	Vector2 mDestinaton;
-
+	
 	std::vector<Vector2> mMoveOrders;
+
 	bool checkCollisions(SDL_Rect& wall, Circle& circlePlayer, const std::vector<Ant*>& ants);
 };
 

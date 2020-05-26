@@ -69,6 +69,10 @@ void CircleEntity::render()
 	mTexture->render(mPosX - mCollider.r, mPosY - mCollider.r);
 }
 
+void CircleEntity::render(float angle) {
+	mTexture->render(mPosX - mCollider.r, mPosY - mCollider.r, NULL, angle);
+}
+
 void CircleEntity::shiftColliders()
 {
 	mCollider.x = mPosX;

@@ -52,6 +52,7 @@ LTexture* gFrameTimeText = NULL;
 LTexture* gPlayerTexture;
 LTexture* gAntTexture;
 LTexture* gSelectedTexture;
+LTexture* gWallTexture;
 
 CircleEntity* gDotCirclePlayer;
 SDL_Rect wall = { 230,100,30,200 };
@@ -72,7 +73,7 @@ std::stringstream averageFpsText;
 std::stringstream antsText;
 std::stringstream frameTimeText;
 
-const int CREATE_THISMANY_ANTS = 500;
+const int CREATE_THISMANY_ANTS = 1;
 int COUNT_ANTS = 0;
 
 std::vector<Ant*> ants;
@@ -141,6 +142,7 @@ bool init()
 		gPlayerTexture = new LTexture(gRenderer);
 		gAntTexture = new LTexture(gRenderer);
 		gSelectedTexture = new LTexture(gRenderer);
+		gWallTexture = new LTexture(gRenderer);
 
 	}
 	
@@ -152,6 +154,7 @@ bool loadMedia()
 	gPlayerTexture->loadFromFile("data/pics/agent.png");
 	gAntTexture->loadFromFile("data/pics/ant.png");
 	gSelectedTexture->loadFromFile("data/pics/selected.png");
+	gWallTexture->loadFromFile("data/pics/wall.png");
 
 
 	gDotCirclePlayer = new CircleEntity(100, 100, gPlayerTexture, gSelectedTexture);
@@ -180,6 +183,9 @@ int start()
 		printf("Failed to load media!\n");
 		return false;
 	}
+
+
+	//place some randomly placed boxes on the screen
 
 	//Main loop flag
 	bool quit = false;
@@ -347,11 +353,11 @@ int start()
 
 		// --- RENDERING  ---  
 				
-				SDL_SetRenderDrawColor(gRenderer, backGroundColor);
-				SDL_RenderClear(gRenderer);
+		SDL_SetRenderDrawColor(gRenderer, backGroundColor);
+		SDL_RenderClear(gRenderer);
 
-				SDL_SetRenderDrawColor(gRenderer, wallColor);
-				SDL_RenderFillRect(gRenderer, &wall);
+		SDL_SetRenderDrawColor(gRenderer, wallColor);
+		SDL_RenderFillRect(gRenderer, &wall);
 				
 
 		gDotCirclePlayer->move(frameTime, wall);
@@ -387,7 +393,7 @@ void allocateAnts(int howmany) {
 
 		Ant* ant = new Ant(x, y, gAntTexture,gSelectedTexture);
 
-		if (checkCollision(ant->getCollider(), wall)) {
+		if (checkCollision(ant->getCollider(), wall) || checkCollision(ant, ants)) {
 			delete ant;
 		}
 		else {
@@ -409,10 +415,10 @@ void close()
 	delete gAverageFPSText;
 	delete gCurrentFPSText;
 	delete gAntsText;
-	delete gSelectedTexture;
 	delete gPlayerTexture;
 	delete gAntTexture;
-
+	delete gSelectedTexture;
+	delete gWallTexture;
 	delete gDotCirclePlayer;
 
 	deleteAllAnts();

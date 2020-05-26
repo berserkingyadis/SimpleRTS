@@ -20,6 +20,7 @@ public:
 	void handleEvent(SDL_Event& e);
 	void move(float frameTime, SDL_Rect& wall);
 	void render();
+	void render(float angle);
 
 	Circle& getCollider() { return mCollider; }
 
@@ -28,6 +29,7 @@ public:
 protected:
 	float mPosX, mPosY;
 	float mVelX, mVelY;
+	float mRotation;
 
 	Circle mCollider;
 	LTexture* mTexture;
