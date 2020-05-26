@@ -31,7 +31,7 @@ bool loadMedia();
 void close();
 
 //Ant spawning and destruction
-void allocateAnts();
+void allocateAnts(int howmany);
 void deleteAllAnts();
 
 //The window we'll be rendering to
@@ -173,181 +173,179 @@ int start()
 	if (!init())
 	{
 		printf("Failed to initialize!\n");
+		return false;
 	}
-	else
-	{
-		//Load media
-		if (!loadMedia())
-		{
-			printf("Failed to load media!\n");
-		}
-		else
-		{
-			//Main loop flag
-			bool quit = false;
+	
+	if (!loadMedia()) {
+		printf("Failed to load media!\n");
+		return false;
+	}
 
-			//left mouse button flags
-			bool dragging = false;
-			bool selectionDone = false;
-			int mouseDragbeginX = 0;
-			int mouseDragbeginY = 0;
-			int mouseDragEndX = 0;
-			int mouseDragEndY = 0;
-			SDL_Rect dragRect;
+	//Main loop flag
+	bool quit = false;
+
+	//left mouse button flags
+	bool dragging = false;
+	bool selectionDone = false;
+	int mouseDragbeginX = 0;
+	int mouseDragbeginY = 0;
+	int mouseDragEndX = 0;
+	int mouseDragEndY = 0;
+	SDL_Rect dragRect;
 			
-			//right mouse button 
-			bool directionGiven = false;
-			int directonX = 0, directionY = 0;
+	//right mouse button 
+	bool directionGiven = false;
+	int directonX = 0, directionY = 0;
 
-			bool redrawAnts = false;
-			int countedFrames = 0;
-			fpsTimer.start();
-			SDL_SetRenderDrawColor(gRenderer, backGroundColor);
-			//While application is running
-			while (!quit)
+	bool redrawAnts = false;
+	int countedFrames = 0;
+	fpsTimer.start();
+	SDL_SetRenderDrawColor(gRenderer, backGroundColor);
+	//While application is running
+	while (!quit)
+	{	
+				
+				
+
+		// --- INPUT AND UPDATE  ---  
+
+		//fps calculation and display
+		float avgFPS = countedFrames++ / (fpsTimer.getTicks() / 1000.f);
+		double frameTime = capTimer.getTicks() / 1000.f;
+				
+		if (avgFPS > 20000)avgFPS = 0;
+		averageFpsText.str("");
+		averageFpsText << "Average FPS: " << avgFPS;
+		gAverageFPSText->loadFromRenderedText(averageFpsText.str().c_str(), textColor);
+
+		averageFpsText.str("");
+		averageFpsText << "Current FPS: " << (unsigned int)(1.f/frameTime);
+		gCurrentFPSText->loadFromRenderedText(averageFpsText.str().c_str(), textColor);
+
+		//frametime display
+		frameTimeText.str("");
+		frameTimeText << "last frametime: " << frameTime << " s";
+		gFrameTimeText->loadFromRenderedText(frameTimeText.str().c_str(), textColor);
+		capTimer.start();
+
+		if (redrawAnts) {
+			antsText.str("");
+			antsText << "Ants alive: " << COUNT_ANTS;
+			gAntsText->loadFromRenderedText(antsText.str().c_str(), textColor);
+		}
+		redrawAnts = false;
+
+		//Handle events on queue
+		while (SDL_PollEvent(&e) != 0)
+		{
+			//User requests quit
+			if (e.type == SDL_QUIT)
+			{
+				quit = true;
+			}
+			//User presses a key
+			else if (e.type == SDL_KEYDOWN)
 			{	
-				
-				
-
-				// --- INPUT AND UPDATE  ---  
-
-				//fps calculation and display
-				float avgFPS = countedFrames++ / (fpsTimer.getTicks() / 1000.f);
-				double frameTime = capTimer.getTicks() / 1000.f;
-				
-				if (avgFPS > 20000)avgFPS = 0;
-				averageFpsText.str("");
-				averageFpsText << "Average FPS: " << avgFPS;
-				gAverageFPSText->loadFromRenderedText(averageFpsText.str().c_str(), textColor);
-
-				averageFpsText.str("");
-				averageFpsText << "Current FPS: " << (unsigned int)(1.f/frameTime);
-				gCurrentFPSText->loadFromRenderedText(averageFpsText.str().c_str(), textColor);
-
-				//frametime display
-				frameTimeText.str("");
-				frameTimeText << "last frametime: " << frameTime << " s";
-				gFrameTimeText->loadFromRenderedText(frameTimeText.str().c_str(), textColor);
-				capTimer.start();
-
-				if (redrawAnts) {
-					antsText.str("");
-					antsText << "Ants alive: " << COUNT_ANTS;
-					gAntsText->loadFromRenderedText(antsText.str().c_str(), textColor);
-				}
-				redrawAnts = false;
-
-				//Handle events on queue
-				while (SDL_PollEvent(&e) != 0)
+				//Select surfaces based on key press
+				switch (e.key.keysym.sym)
 				{
-					//User requests quit
-					if (e.type == SDL_QUIT)
-					{
-						quit = true;
-					}
-					//User presses a key
-					else if (e.type == SDL_KEYDOWN)
-					{	
-						//Select surfaces based on key press
-						switch (e.key.keysym.sym)
-						{
-						case SDLK_ESCAPE:
-							quit = true;
-							break;
-						case SDLK_e:
-							deleteAllAnts();
-							redrawAnts = true;
-							break;
-						case SDLK_r:
-							allocateAnts();
-							redrawAnts = true;
-						default:
-							break;
-						}
-					}
-
-					//Left mouse button for selection
-					else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
-						if (!dragging) {
-							SDL_GetMouseState(&mouseDragbeginX, &mouseDragbeginY);
-							SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
-							dragging = true;
-						}
-					}
-					else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
-						dragging = false;
-						selectionDone = true;
-
-					}
-
-					//Right mouse button for move orders
-					else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT) {
-						directionGiven = true;
-						SDL_GetMouseState(&directonX, &directionY);
-					}
-
-					// Mouse motion in general
-					else if (e.type == SDL_MOUSEMOTION) {
-						if (dragging) {
-							SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
-							dragRect.x = MIN(mouseDragbeginX, mouseDragEndX);
-							dragRect.y = MIN(mouseDragbeginY, mouseDragEndY);
-							int w = mouseDragbeginX - mouseDragEndX;
-							int h = mouseDragbeginY - mouseDragEndY;
-							dragRect.w = ABS(w);
-							dragRect.h = ABS(h);
-						}
-					}
-					gDotCirclePlayer->handleEvent(e);
+				case SDLK_ESCAPE:
+					quit = true;
+					break;
+				case SDLK_e:
+					deleteAllAnts();
+					redrawAnts = true;
+					break;
+				case SDLK_r:
+					allocateAnts(CREATE_THISMANY_ANTS);
+					redrawAnts = true;
+				default:
+					break;
 				}
+			}
 
-				//SELECTION LOGIC
-				if (selectionDone) for (auto a : ants)a->mSelected = false;
-
-				std::vector<Ant*>::iterator iter = ants.begin();
-
-				while (iter != ants.end()) {
-					Ant* a = (*iter);
-					//a->updateRandomly();
-					//a->move(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
-
-					if (selectionDone && checkCollision(a->getCollider(), dragRect)) a->mSelected = true;
-					if (a->mDead) {
-						iter = ants.erase(iter);
-						delete a;
-						COUNT_ANTS--;
-						redrawAnts = true;
-					}
-					else {
-						++iter;
-					}
+			//Left mouse button for selection
+			else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+				if (!dragging) {
+					SDL_GetMouseState(&mouseDragbeginX, &mouseDragbeginY);
+					SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
+					dragging = true;
 				}
+			}
+			else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+				dragging = false;
+				selectionDone = true;
 
-				if (selectionDone) {
-					selectionDone = false;
-					dragRect.x = 0;
-					dragRect.y = 0;
-					dragRect.h = 0;
-					dragRect.w = 0;
-				}
+			}
 
-				//MOVE ORDER LOGIC
-				if (directionGiven) {
-					for (auto a : ants) {
-						if (a->mSelected) {
-							a->setDestination(Vector2(directonX, directionY));
-						}
-					}
-					directionGiven = false;
+			//Right mouse button for move orders
+			else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT) {
+				directionGiven = true;
+				SDL_GetMouseState(&directonX, &directionY);
+			}
+
+			// Mouse motion in general
+			else if (e.type == SDL_MOUSEMOTION) {
+				if (dragging) {
+					SDL_GetMouseState(&mouseDragEndX, &mouseDragEndY);
+					dragRect.x = MIN(mouseDragbeginX, mouseDragEndX);
+					dragRect.y = MIN(mouseDragbeginY, mouseDragEndY);
+					int w = mouseDragbeginX - mouseDragEndX;
+					int h = mouseDragbeginY - mouseDragEndY;
+					dragRect.w = ABS(w);
+					dragRect.h = ABS(h);
 				}
+			}
+			gDotCirclePlayer->handleEvent(e);
+		}
+
+		//SELECTION LOGIC
+		if (selectionDone) for (auto a : ants)a->mSelected = false;
+
+		std::vector<Ant*>::iterator iter = ants.begin();
+
+		while (iter != ants.end()) {
+			Ant* a = (*iter);
+			//a->updateRandomly();
+			//a->move(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
+
+			if (selectionDone && checkCollision(a->getCollider(), dragRect)) a->mSelected = true;
+			if (a->mDead) {
+				iter = ants.erase(iter);
+				delete a;
+				COUNT_ANTS--;
+				redrawAnts = true;
+			}
+			else {
+				++iter;
+			}
+		}
+
+		if (selectionDone) {
+			selectionDone = false;
+			dragRect.x = 0;
+			dragRect.y = 0;
+			dragRect.h = 0;
+			dragRect.w = 0;
+		}
+
+		//MOVE ORDER LOGIC
+		if (directionGiven) {
+			for (auto a : ants) {
+				if (a->mSelected) {
+					a->setDestination(Vector2(directonX, directionY));
+				}
+			}
+			directionGiven = false;
+		}
 				
 				
-				// UPDATE LOGIC
-				for (auto a : ants) {
-					a->proceedToDestination(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
-				}
+		// UPDATE LOGIC
+		for (auto a : ants) {
+			a->proceedToDestination(frameTime, wall, gDotCirclePlayer->getCollider(), ants);
+		}
 
-				// --- RENDERING  ---  
+		// --- RENDERING  ---  
 				
 				SDL_SetRenderDrawColor(gRenderer, backGroundColor);
 				SDL_RenderClear(gRenderer);
@@ -356,37 +354,34 @@ int start()
 				SDL_RenderFillRect(gRenderer, &wall);
 				
 
-				gDotCirclePlayer->move(frameTime, wall);
-				gDotCirclePlayer->render();
+		gDotCirclePlayer->move(frameTime, wall);
+		gDotCirclePlayer->render();
 
 
-				for (Ant* a : ants)a->render();
+		for (Ant* a : ants)a->render();
 
-				if (dragging) {
-					SDL_SetRenderDrawColor(gRenderer, dragRectColor);
-					SDL_RenderFillRect(gRenderer, &dragRect);
-					SDL_SetRenderDrawColor(gRenderer, backGroundColor);
-				}
-								//draw FPS over everything
-				gAverageFPSText->render(10, 10);
-				gCurrentFPSText->render(10, 40);
-				gAntsText->render(10, 70);
-				gFrameTimeText->render(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 10);
-				SDL_RenderPresent(gRenderer);
-			}
+		if (dragging) {
+			SDL_SetRenderDrawColor(gRenderer, dragRectColor);
+			SDL_RenderFillRect(gRenderer, &dragRect);
+			SDL_SetRenderDrawColor(gRenderer, backGroundColor);
 		}
-	}
+						//draw FPS over everything
+		gAverageFPSText->render(10, 10);
+		gCurrentFPSText->render(10, 40);
+		gAntsText->render(10, 70);
+		gFrameTimeText->render(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 10);
+		SDL_RenderPresent(gRenderer);
+	}	
 
 	//Free resources and close SDL
 	close();
-	SDL_StopTextInput();
 	return 0;
 }
 
 
-void allocateAnts() {
+void allocateAnts(int howmany) {
 	int c = 0;
-	while (c < CREATE_THISMANY_ANTS) {
+	while (c < howmany) {
 		float x = rand() % (SCREEN_WIDTH - CircleEntity::DOT_WIDTH) + CircleEntity::DOT_WIDTH;
 		float y = rand() % (SCREEN_HEIGHT - CircleEntity::DOT_HEIGHT) + CircleEntity::DOT_HEIGHT;
 
