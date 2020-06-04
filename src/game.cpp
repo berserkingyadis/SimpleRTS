@@ -10,6 +10,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <lua.hpp>
 
 #include "LTexture.h"
 #include "LButton.h"
@@ -73,11 +74,19 @@ std::stringstream averageFpsText;
 std::stringstream antsText;
 std::stringstream frameTimeText;
 
-const int CREATE_THISMANY_ANTS = 1;
+int CREATE_THISMANY_ANTS = 100;
 int COUNT_ANTS = 0;
 
 std::vector<Ant*> ants;
 
+bool checkLua(lua_State* L, int r) {
+	if (r != LUA_OK) {
+		std::string errormsg = lua_tostring(L, -1);
+		std::cout << "LUA_ERROR: " << errormsg << std::endl;
+		return false;
+	}
+	return true;
+}
 bool init()
 {
 
@@ -85,6 +94,23 @@ bool init()
 
 	//Initialization flag
 	bool success = true;
+
+	// use lua to load the settings file
+	lua_State* L = luaL_newstate();
+
+	if (checkLua(L, luaL_dofile(L, "data/settings.lua"))) {
+		if (checkLua(L, lua_getglobal(L, "antspaws"))) {
+			if (checkLua(L, lua_isnumber(L, -1))) {
+				CREATE_THISMANY_ANTS = lua_tonumber(L, -1);
+			}
+			else {
+				CREATE_THISMANY_ANTS = 1;
+			}
+		}
+	}
+	else {
+		CREATE_THISMANY_ANTS = 1;
+	}
 
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)

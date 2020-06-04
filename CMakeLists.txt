@@ -21,6 +21,12 @@ target_link_libraries(SimpleRTS PRIVATE SDL2::SDL2_ttf)
 #find_package(sdl2-mixer CONFIG REQUIRED)
 #target_link_libraries(SimpleRTS PRIVATE SDL2::SDL2_mixer)
 
+include(FindLua)
+find_package(Lua REQUIRED)
+target_link_libraries(SimpleRTS PRIVATE ${LUA_LIBRARIES})
+target_include_directories(SimpleRTS PRIVATE ${LUA_INCLUDE_DIR})
+
+
 add_custom_command( TARGET SimpleRTS POST_BUILD
 					COMMAND ${CMAKE_COMMAND} -E copy_directory
 				${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:SimpleRTS>/data/)
