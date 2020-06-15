@@ -1,1 +1,1 @@
-antspawns = a
+antspawns = 100

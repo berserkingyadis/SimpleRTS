@@ -74,7 +74,8 @@ std::stringstream averageFpsText;
 std::stringstream antsText;
 std::stringstream frameTimeText;
 
-int CREATE_THISMANY_ANTS = 100;
+int CREATE_THISMANY_ANTS;
+const int AMOUNT_ANT_DEFAULT = 100;
 int COUNT_ANTS = 0;
 
 std::vector<Ant*> ants;
@@ -99,17 +100,14 @@ bool init()
 	lua_State* L = luaL_newstate();
 
 	if (checkLua(L, luaL_dofile(L, "data/settings.lua"))) {
-		if (checkLua(L, lua_getglobal(L, "antspaws"))) {
-			if (checkLua(L, lua_isnumber(L, -1))) {
-				CREATE_THISMANY_ANTS = lua_tonumber(L, -1);
-			}
-			else {
-				CREATE_THISMANY_ANTS = 1;
-			}
+		lua_getglobal(L, "antspawns");
+		CREATE_THISMANY_ANTS = lua_tonumber(L, -1);
+		if (CREATE_THISMANY_ANTS <= 0) {
+			CREATE_THISMANY_ANTS = AMOUNT_ANT_DEFAULT;
 		}
 	}
 	else {
-		CREATE_THISMANY_ANTS = 1;
+		CREATE_THISMANY_ANTS = AMOUNT_ANT_DEFAULT;
 	}
 
 	//Initialize SDL
