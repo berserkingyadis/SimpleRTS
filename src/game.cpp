@@ -83,6 +83,7 @@ bool checkLua(lua_State* L, int r) {
 	if (r != LUA_OK) {
 		std::string errormsg = lua_tostring(L, -1);
 		std::cout << "LUA_ERROR: " << errormsg << std::endl;
+		lua_pop(L, -1);
 		return false;
 	}
 	return true;
@@ -99,7 +100,7 @@ bool init()
 	lua_State* L = luaL_newstate();
 
 	if (checkLua(L, luaL_dofile(L, "data/settings.lua"))) {
-		if (checkLua(L, lua_getglobal(L, "antspaws"))) {
+		if (checkLua(L, lua_getglobal(L, "antspawns"))) {
 			if (checkLua(L, lua_isnumber(L, -1))) {
 				CREATE_THISMANY_ANTS = lua_tonumber(L, -1);
 			}

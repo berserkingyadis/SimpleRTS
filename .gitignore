@@ -2,6 +2,7 @@
 build/
 CMakeSettings.json
 .vs/
+.vscode/
 
 # Prerequisites
 *.d
